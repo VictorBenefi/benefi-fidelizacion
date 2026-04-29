@@ -14,7 +14,6 @@ export default function UsuariosPage() {
     ? params.comercioId[0]
     : (params?.comercioId as string) || ''
 
-  
   const [tab, setTab] = useState<TabKey>('login')
   const [loading, setLoading] = useState(false)
   const [loadingBranding, setLoadingBranding] = useState(true)
@@ -29,7 +28,6 @@ export default function UsuariosPage() {
   const [recoverEmail, setRecoverEmail] = useState('')
   const [recoverPassword, setRecoverPassword] = useState('')
   const [recoverConfirmPassword, setRecoverConfirmPassword] = useState('')
-  
 
   const [nombreCompleto, setNombreCompleto] = useState('')
   const [dni, setDni] = useState('')
@@ -38,9 +36,11 @@ export default function UsuariosPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showLoginPassword, setShowLoginPassword] = useState(false)
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false)
+  const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false)
+  const [showRecoverPassword, setShowRecoverPassword] = useState(false)
+  const [showRecoverConfirmPassword, setShowRecoverConfirmPassword] = useState(false)
 
   useEffect(() => {
     const cargarBranding = async () => {
@@ -207,111 +207,105 @@ export default function UsuariosPage() {
 
     setLoading(true)
 
-try {
-  const { data: authData, error } =
-    await supabaseClient.auth.signInWithPassword({
-      email: loginEmail.trim(),
-      password: loginPassword,
-    })
+    try {
+      const { data: authData, error } = await supabaseClient.auth.signInWithPassword({
+        email: loginEmail.trim(),
+        password: loginPassword,
+      })
 
-  if (error || !authData.user) {
-    setMensaje(error?.message || 'No se pudo iniciar sesión')
-    setMensajeTipo('error')
-    return
+      if (error || !authData.user) {
+        setMensaje(error?.message || 'No se pudo iniciar sesión')
+        setMensajeTipo('error')
+        return
+      }
+
+      const { data: relacion, error: relacionError } = await supabaseClient
+        .from('usuarios_comercios')
+        .select('id')
+        .eq('usuario_id', authData.user.id)
+        .eq('comercio_id', comercioId)
+        .maybeSingle()
+
+      if (relacionError || !relacion) {
+        await supabaseClient.auth.signOut()
+        setMensaje('Este usuario no está registrado en este comercio.')
+        setMensajeTipo('error')
+        return
+      }
+
+      router.push(`/usuarios/${comercioId}/dashboard`)
+    } catch (error) {
+      console.error(error)
+      setMensaje('Ocurrió un error al iniciar sesión')
+      setMensajeTipo('error')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // 🔴 VALIDACIÓN CLAVE: verificar que el usuario pertenece al comercio
-  const { data: relacion, error: relacionError } = await supabaseClient
-    .from('usuarios_comercios')
-    .select('id')
-    .eq('usuario_id', authData.user.id)
-    .eq('comercio_id', comercioId)
-    .maybeSingle()
-
-  if (relacionError || !relacion) {
-    // cerramos sesión porque no corresponde a este comercio
-    await supabaseClient.auth.signOut()
-
-    setMensaje('Este usuario no está registrado en este comercio.')
-    setMensajeTipo('error')
-    return
-  }
-
-  // ✅ OK: pertenece al comercio
-  router.push(`/usuarios/${comercioId}/dashboard`)
-
-} catch (error) {
-  console.error(error)
-  setMensaje('Ocurrió un error al iniciar sesión')
-  setMensajeTipo('error')
-} finally {
-  setLoading(false)
-}
-}
   const handleRecoverPassword = async () => {
-  limpiarMensaje()
+    limpiarMensaje()
 
-  if (!recoverEmail.trim()) {
-    setMensaje('Ingresá tu email')
-    setMensajeTipo('error')
-    return
-  }
-
-  if (!recoverPassword.trim()) {
-    setMensaje('Ingresá la nueva contraseña')
-    setMensajeTipo('error')
-    return
-  }
-
-  if (recoverPassword.length < 6) {
-    setMensaje('La contraseña debe tener al menos 6 caracteres')
-    setMensajeTipo('error')
-    return
-  }
-
-  if (recoverPassword !== recoverConfirmPassword) {
-    setMensaje('Las contraseñas no coinciden')
-    setMensajeTipo('error')
-    return
-  }
-
-  setLoading(true)
-
-  try {
-    const res = await fetch('/api/usuarios/recover-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: recoverEmail.trim().toLowerCase(),
-        password: recoverPassword,
-      }),
-    })
-
-    const data = await res.json()
-
-    if (!res.ok || !data.ok) {
-      setMensaje(data.error || 'No se pudo actualizar la contraseña')
+    if (!recoverEmail.trim()) {
+      setMensaje('Ingresá tu email')
       setMensajeTipo('error')
       return
     }
 
-    setMensaje('Contraseña actualizada correctamente. Ya podés ingresar.')
-    setMensajeTipo('ok')
+    if (!recoverPassword.trim()) {
+      setMensaje('Ingresá la nueva contraseña')
+      setMensajeTipo('error')
+      return
+    }
 
-    setLoginEmail(recoverEmail.trim().toLowerCase())
-    setLoginPassword('')
-    setRecoverEmail('')
-    setRecoverPassword('')
-    setRecoverConfirmPassword('')
-    setTab('login')
-  } catch (error) {
-    console.error(error)
-    setMensaje('Ocurrió un error al recuperar la contraseña')
-    setMensajeTipo('error')
-  } finally {
-    setLoading(false)
+    if (recoverPassword.length < 6) {
+      setMensaje('La contraseña debe tener al menos 6 caracteres')
+      setMensajeTipo('error')
+      return
+    }
+
+    if (recoverPassword !== recoverConfirmPassword) {
+      setMensaje('Las contraseñas no coinciden')
+      setMensajeTipo('error')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/usuarios/recover-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: recoverEmail.trim().toLowerCase(),
+          password: recoverPassword,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.ok) {
+        setMensaje(data.error || 'No se pudo actualizar la contraseña')
+        setMensajeTipo('error')
+        return
+      }
+
+      setMensaje('Contraseña actualizada correctamente. Ya podés ingresar.')
+      setMensajeTipo('ok')
+      setLoginEmail(recoverEmail.trim().toLowerCase())
+      setLoginPassword('')
+      setRecoverEmail('')
+      setRecoverPassword('')
+      setRecoverConfirmPassword('')
+      setTab('login')
+    } catch (error) {
+      console.error(error)
+      setMensaje('Ocurrió un error al recuperar la contraseña')
+      setMensajeTipo('error')
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   const handleRegister = async () => {
     limpiarMensaje()
@@ -397,13 +391,13 @@ try {
     >
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: 22,
-              alignItems: 'stretch',
-            }}
-          >
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 22,
+            alignItems: 'stretch',
+          }}
+        >
           <div
             style={{
               background: '#ffffff',
@@ -485,8 +479,6 @@ try {
               >
                 {branding.descripcion}
               </p>
-
-              
             </div>
 
             <div
@@ -497,18 +489,9 @@ try {
                 marginTop: 28,
               }}
             >
-              <BenefitBox
-                title="Tus puntos"
-                text="Consultá tu saldo actualizado en tiempo real."
-              />
-              <BenefitBox
-                title="Tus movimientos"
-                text="Revisá cargas, canjes y operaciones recientes."
-              />
-              <BenefitBox
-                title="Tu comercio"
-                text="Viví una experiencia con el branding del programa."
-              />
+              <BenefitBox title="Tus puntos" text="Consultá tu saldo actualizado en tiempo real." />
+              <BenefitBox title="Tus movimientos" text="Revisá cargas, canjes y operaciones recientes." />
+              <BenefitBox title="Tu comercio" text="Viví una experiencia con el branding del programa." />
             </div>
           </div>
 
@@ -558,24 +541,10 @@ try {
             {tab === 'login' && (
               <div>
                 <div style={{ marginBottom: 22 }}>
-                  <h2
-                    style={{
-                      margin: 0,
-                      marginBottom: 8,
-                      fontSize: 32,
-                      color: '#0f172a',
-                    }}
-                  >
+                  <h2 style={{ margin: 0, marginBottom: 8, fontSize: 32, color: '#0f172a' }}>
                     Ingresar
                   </h2>
-                  <p
-                    style={{
-                      margin: 0,
-                      color: '#64748b',
-                      fontSize: 15,
-                      lineHeight: '22px',
-                    }}
-                  >
+                  <p style={{ margin: 0, color: '#64748b', fontSize: 15, lineHeight: '22px' }}>
                     Accedé con tu email y contraseña para ver tus puntos y movimientos.
                   </p>
                 </div>
@@ -594,13 +563,22 @@ try {
 
                   <div>
                     <label style={labelStyle}>Contraseña</label>
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Ingresá tu contraseña"
-                      style={inputStyle}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showLoginPassword ? 'text' : 'password'}
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="Ingresá tu contraseña"
+                        style={{ ...inputStyle, paddingRight: 48 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        style={eyeButtonStyle}
+                      >
+                        {showLoginPassword ? '🙈' : '👁️'}
+                      </button>
+                    </div>
                   </div>
 
                   <button
@@ -615,201 +593,152 @@ try {
                   >
                     {loading ? 'Ingresando...' : 'Ingresar'}
                   </button>
+
                   <button
                     type="button"
                     onClick={() => {
-                    limpiarMensaje()
-                    setRecoverEmail(loginEmail.trim())
-                    setRecoverPassword('')
-                    setRecoverConfirmPassword('')
-                    setTab('recover')
-                  }}
-                  style={{
-                    alignSelf: 'center',
-                    marginTop: 10,
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#2563eb',
-                    fontSize: 13,
-                    textDecoration: 'underline',
-                    cursor: 'pointer',          // 👈 clave
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.cursor = 'pointer')} // 👈 refuerzo
-                >
+                      limpiarMensaje()
+                      setRecoverEmail(loginEmail.trim())
+                      setRecoverPassword('')
+                      setRecoverConfirmPassword('')
+                      setTab('recover')
+                    }}
+                    style={{
+                      alignSelf: 'center',
+                      marginTop: 10,
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#2563eb',
+                      fontSize: 13,
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                    }}
+                  >
                     ¿Olvidaste tu contraseña?
                   </button>
                 </div>
               </div>
             )}
+
             {tab === 'recover' && (
-  <div>
-    <div style={{ marginBottom: 22 }}>
-      <h2
-        style={{
-          margin: 0,
-          marginBottom: 8,
-          fontSize: 32,
-          color: '#0f172a',
-        }}
-      >
-        Recuperar contraseña
-      </h2>
-      <p
-        style={{
-          margin: 0,
-          color: '#64748b',
-          fontSize: 15,
-          lineHeight: '22px',
-        }}
-      >
-        Ingresá tu email y definí una nueva contraseña.
-      </p>
-    </div>
+              <div>
+                <div style={{ marginBottom: 22 }}>
+                  <h2 style={{ margin: 0, marginBottom: 8, fontSize: 32, color: '#0f172a' }}>
+                    Recuperar contraseña
+                  </h2>
+                  <p style={{ margin: 0, color: '#64748b', fontSize: 15, lineHeight: '22px' }}>
+                    Ingresá tu email y definí una nueva contraseña.
+                  </p>
+                </div>
 
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div>
-        <label style={labelStyle}>Email</label>
-        <input
-          type="email"
-          value={recoverEmail}
-          onChange={(e) => setRecoverEmail(e.target.value)}
-          placeholder="tuemail@correo.com"
-          style={inputStyle}
-        />
-      </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label style={labelStyle}>Email</label>
+                    <input
+                      type="email"
+                      value={recoverEmail}
+                      onChange={(e) => setRecoverEmail(e.target.value)}
+                      placeholder="tuemail@correo.com"
+                      style={inputStyle}
+                    />
+                  </div>
 
-<div>
-  <label style={labelStyle}>Nueva contraseña</label>
+                  <div>
+                    <label style={labelStyle}>Nueva contraseña</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showRecoverPassword ? 'text' : 'password'}
+                        value={recoverPassword}
+                        onChange={(e) => setRecoverPassword(e.target.value)}
+                        placeholder="Mínimo 6 caracteres"
+                        style={{ ...inputStyle, paddingRight: 48 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRecoverPassword(!showRecoverPassword)}
+                        style={eyeButtonStyle}
+                      >
+                        {showRecoverPassword ? '🙈' : '👁️'}
+                      </button>
+                    </div>
+                  </div>
 
-  <div style={{ position: 'relative' }}>
-    <input
-      type={showPassword ? 'text' : 'password'}
-      value={recoverPassword}
-      onChange={(e) => setRecoverPassword(e.target.value)}
-      placeholder="Mínimo 6 caracteres"
-      style={{
-        ...inputStyle,
-        paddingRight: 44,
-      }}
-    />
+                  <div>
+                    <label style={labelStyle}>Confirmar contraseña</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showRecoverConfirmPassword ? 'text' : 'password'}
+                        value={recoverConfirmPassword}
+                        onChange={(e) => setRecoverConfirmPassword(e.target.value)}
+                        placeholder="Repetí la nueva contraseña"
+                        style={{ ...inputStyle, paddingRight: 48 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRecoverConfirmPassword(!showRecoverConfirmPassword)}
+                        style={eyeButtonStyle}
+                      >
+                        {showRecoverConfirmPassword ? '🙈' : '👁️'}
+                      </button>
+                    </div>
+                  </div>
 
-    <button
-      type="button"
-      onClick={() => setShowPassword(!showPassword)}
-      style={{
-        position: 'absolute',
-        right: 10,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        fontSize: 16,
-      }}
-    >
-      {showPassword ? '🙈' : '👁️'}
-    </button>
-  </div>
-</div>
+                  <button
+                    type="button"
+                    onClick={handleRecoverPassword}
+                    disabled={loading}
+                    style={{
+                      ...primaryButtonStyle(branding.colorBoton),
+                      marginTop: 6,
+                      opacity: loading ? 0.7 : 1,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {loading ? 'Actualizando...' : 'Actualizar contraseña'}
+                  </button>
 
-<div>
-  <label style={labelStyle}>Confirmar contraseña</label>
-
-  <div style={{ position: 'relative' }}>
-    <input
-      type={showConfirmPassword ? 'text' : 'password'}
-      value={recoverConfirmPassword}
-      onChange={(e) => setRecoverConfirmPassword(e.target.value)}
-      placeholder="Repetí la nueva contraseña"
-      style={{
-        ...inputStyle,
-        paddingRight: 44,
-      }}
-    />
-
-    <button
-      type="button"
-      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-      style={{
-        position: 'absolute',
-        right: 10,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        fontSize: 16,
-      }}
-    >
-      {showConfirmPassword ? '🙈' : '👁️'}
-    </button>
-  </div>
-</div>
-
-      <button
-        type="button"
-        onClick={handleRecoverPassword}
-        disabled={loading}
-        style={{
-          ...primaryButtonStyle(branding.colorBoton),
-          marginTop: 6,
-          opacity: loading ? 0.7 : 1,
-          cursor: loading ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {loading ? 'Actualizando...' : 'Actualizar contraseña'}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => {
-          limpiarMensaje()
-          setTab('login')
-        }}
-        style={{
-          alignSelf: 'center',
-          marginTop: 8,
-          background: 'transparent',
-          border: 'none',
-          color: '#2563eb',
-          fontSize: 13,
-          cursor: 'pointer',
-          textDecoration: 'underline',
-        }}
-      >
-        Volver al login
-      </button>
-    </div>
-  </div>
-)}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      limpiarMensaje()
+                      setTab('login')
+                    }}
+                    style={{
+                      alignSelf: 'center',
+                      marginTop: 8,
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#2563eb',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Volver al login
+                  </button>
+                </div>
+              </div>
+            )}
 
             {tab === 'register' && (
               <div>
                 <div style={{ marginBottom: 22 }}>
-                  <h2
-                    style={{
-                      margin: 0,
-                      marginBottom: 8,
-                      fontSize: 32,
-                      color: '#0f172a',
-                    }}
-                  >
+                  <h2 style={{ margin: 0, marginBottom: 8, fontSize: 32, color: '#0f172a' }}>
                     Crear cuenta
                   </h2>
-                  <p
-                    style={{
-                      margin: 0,
-                      color: '#64748b',
-                      fontSize: 15,
-                      lineHeight: '22px',
-                    }}
-                  >
+                  <p style={{ margin: 0, color: '#64748b', fontSize: 15, lineHeight: '22px' }}>
                     Registrate para poder consultar tus puntos y movimientos dentro del programa.
                   </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div style={{ gridColumn: '1 / span 2' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    gap: 16,
+                  }}
+                >
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={labelStyle}>Nombre y apellido</label>
                     <input
                       type="text"
@@ -842,7 +771,7 @@ try {
                     />
                   </div>
 
-                  <div style={{ gridColumn: '1 / span 2' }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={labelStyle}>Email</label>
                     <input
                       type="email"
@@ -853,64 +782,61 @@ try {
                     />
                   </div>
 
-                 <div>
-                  <label style={labelStyle}>Contraseña</label>
-
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showLoginPassword ? 'text' : 'password'}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Ingresá tu contraseña"
-                      style={{
-                        ...inputStyle,
-                        paddingRight: 44,
-                      }}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      style={{
-                        position: 'absolute',
-                        right: 10,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        fontSize: 16,
-                      }}
-                    >
-                      {showLoginPassword ? '🙈' : '👁️'}
-                    </button>
+                  <div>
+                    <label style={labelStyle}>Contraseña</label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showRegisterPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Mínimo 6 caracteres"
+                        style={{ ...inputStyle, paddingRight: 48 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        style={eyeButtonStyle}
+                      >
+                        {showRegisterPassword ? '🙈' : '👁️'}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
                   <div>
                     <label style={labelStyle}>Confirmar contraseña</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Repetí la contraseña"
-                      style={inputStyle}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showRegisterConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repetí la contraseña"
+                        style={{ ...inputStyle, paddingRight: 48 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                        style={eyeButtonStyle}
+                      >
+                        {showRegisterConfirmPassword ? '🙈' : '👁️'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <button
+                      onClick={handleRegister}
+                      disabled={loading}
+                      style={{
+                        ...primaryButtonStyle(branding.colorBoton),
+                        marginTop: 4,
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+                    </button>
                   </div>
                 </div>
-
-                <button
-                  onClick={handleRegister}
-                  disabled={loading}
-                  style={{
-                    ...primaryButtonStyle(branding.colorBoton),
-                    marginTop: 20,
-                    opacity: loading ? 0.7 : 1,
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {loading ? 'Creando cuenta...' : 'Crear cuenta'}
-                </button>
               </div>
             )}
 
@@ -923,10 +849,7 @@ try {
                   fontWeight: 700,
                   background: mensajeTipo === 'ok' ? '#ecfdf5' : '#fef2f2',
                   color: mensajeTipo === 'ok' ? '#065f46' : '#991b1b',
-                  border:
-                    mensajeTipo === 'ok'
-                      ? '1px solid #a7f3d0'
-                      : '1px solid #fecaca',
+                  border: mensajeTipo === 'ok' ? '1px solid #a7f3d0' : '1px solid #fecaca',
                 }}
               >
                 {mensaje}
@@ -991,6 +914,7 @@ function TabButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       style={{
         height: 48,
@@ -1025,6 +949,18 @@ const inputStyle: React.CSSProperties = {
   background: '#fff',
   fontSize: 15,
   boxSizing: 'border-box',
+}
+
+const eyeButtonStyle: React.CSSProperties = {
+  position: 'absolute',
+  right: 10,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: 16,
+  padding: 4,
 }
 
 function primaryButtonStyle(color: string): React.CSSProperties {
