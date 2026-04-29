@@ -19,7 +19,14 @@ const isPublicRoute =
   pathname === "/comercio/login" ||
   pathname?.startsWith("/usuarios") ||
   (
-    pathname.split("/").length === 2 && // solo primer nivel (ej: /cafecentro)
+    pathname.split("/").length === 2 &&
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/comercio")
+  ) ||
+  (
+    pathname.split("/").length === 3 &&
+    pathname.endsWith("/login") &&
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/api") &&
     !pathname.startsWith("/comercio")
