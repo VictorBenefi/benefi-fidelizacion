@@ -61,30 +61,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. VALIDACIÓN DE SLUG (🔥 LO IMPORTANTE)
-    if (slug) {
-      const { data: campania } = await supabaseAdmin
-        .from("campaign_settings")
-        .select("id")
-        .eq("slug", slug)
-        .eq("activa", true)
-        .single();
-
-      if (!campania) {
-        return NextResponse.json(
-          { error: "Campaña inválida." },
-          { status: 400 }
-        );
-      }
-
-      if (comercio.campaign_id !== campania.id) {
-        return NextResponse.json(
-          { error: "Este usuario no pertenece a este comercio." },
-          { status: 403 }
-        );
-      }
-    }
-
     return NextResponse.json({
       ok: true,
       comercio: {
