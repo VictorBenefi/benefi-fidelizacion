@@ -13,51 +13,43 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: campania, error: campaniaError } = await supabaseAdmin
-      .from("campaign_settings")
-      .select("id, slug, activa")
+    const { data: comercio, error } = await supabaseAdmin
+      .from("comercios")
+      .select("id, nombre_fantasia, razon_social, slug, activo, campaign_id")
       .eq("slug", slug)
-      .eq("activa", true)
-      .single();
+      .maybeSingle();
 
-    if (campaniaError || !campania) {
+    if (error) {
       return NextResponse.json(
-        { error: "No se encontró la campaña" },
+        { error: "Error al buscar comercio" },
+        { status: 500 }
+      );
+    }
+
+    if (!comercio) {
+      return NextResponse.json(
+        { error: "No se encontró el comercio" },
         { status: 404 }
       );
     }
 
-    const { data: comercio, error } = await supabaseAdmin
-      .from("comercios")
-      .select("*")
-      .eq("slug", slug)
-      .maybeSingle();
-
-      if (error) {
-        return NextResponse.json(
-          { error: "Error al buscar comercio" },
-          { status: 500 }
-        );
-      }
-
-      if (!comercio) {
-        return NextResponse.json(
-          { error: "No se encontró el comercio" },
-          { status: 404 }
-        );
-      }
+    if (comercio.activo === false) {
+      return NextResponse.json(
+        { error: "El comercio está inactivo" },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
+      ok: true,
       id: comercio.id,
-      nombre_fantasia: comercio.nombre_fantasia,
-      razon_social: comercio.razon_social,
-      slug,
+      comercio,
     });
   } catch (error) {
-    console.error("Error resolviendo slug:", error);
+    console.error("Error resolviendo comercio por slug:", error);
 
     return NextResponse.json(
-      { error: "Ocurrió un error al resolver el slug" },
+      { error: "Ocurrió un error al resolver el comercio" },
       { status: 500 }
     );
   }
