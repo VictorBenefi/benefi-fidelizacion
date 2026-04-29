@@ -27,11 +27,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: comercio } = await supabaseAdmin
-    .from("comercios")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+    const { data: comercio, error } = await supabaseAdmin
+      .from("comercios")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
 
       if (error) {
         return NextResponse.json(
