@@ -393,13 +393,13 @@ try {
     >
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.05fr 0.95fr',
-            gap: 22,
-            alignItems: 'stretch',
-          }}
-        >
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: 22,
+              alignItems: 'stretch',
+            }}
+          >
           <div
             style={{
               background: '#ffffff',
@@ -410,7 +410,7 @@ try {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: 720,
+              minHeight: 'auto',
             }}
           >
             <div>
@@ -488,7 +488,7 @@ try {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(140px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                 gap: 14,
                 marginTop: 28,
               }}
@@ -515,7 +515,7 @@ try {
               padding: 30,
               boxShadow: '0 18px 48px rgba(15, 23, 42, 0.08)',
               border: '1px solid #edf2f7',
-              minHeight: 720,
+              minHeight: 'auto',
             }}
           >
             <div
