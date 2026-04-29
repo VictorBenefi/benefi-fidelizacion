@@ -38,6 +38,10 @@ export default function UsuariosPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+
   useEffect(() => {
     const cargarBranding = async () => {
       try {
@@ -674,27 +678,73 @@ try {
         />
       </div>
 
-      <div>
-        <label style={labelStyle}>Nueva contraseña</label>
-        <input
-          type="password"
-          value={recoverPassword}
-          onChange={(e) => setRecoverPassword(e.target.value)}
-          placeholder="Mínimo 6 caracteres"
-          style={inputStyle}
-        />
-      </div>
+<div>
+  <label style={labelStyle}>Nueva contraseña</label>
 
-      <div>
-        <label style={labelStyle}>Confirmar contraseña</label>
-        <input
-          type="password"
-          value={recoverConfirmPassword}
-          onChange={(e) => setRecoverConfirmPassword(e.target.value)}
-          placeholder="Repetí la nueva contraseña"
-          style={inputStyle}
-        />
-      </div>
+  <div style={{ position: 'relative' }}>
+    <input
+      type={showPassword ? 'text' : 'password'}
+      value={recoverPassword}
+      onChange={(e) => setRecoverPassword(e.target.value)}
+      placeholder="Mínimo 6 caracteres"
+      style={{
+        ...inputStyle,
+        paddingRight: 44,
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      style={{
+        position: 'absolute',
+        right: 10,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        fontSize: 16,
+      }}
+    >
+      {showPassword ? '🙈' : '👁️'}
+    </button>
+  </div>
+</div>
+
+<div>
+  <label style={labelStyle}>Confirmar contraseña</label>
+
+  <div style={{ position: 'relative' }}>
+    <input
+      type={showConfirmPassword ? 'text' : 'password'}
+      value={recoverConfirmPassword}
+      onChange={(e) => setRecoverConfirmPassword(e.target.value)}
+      placeholder="Repetí la nueva contraseña"
+      style={{
+        ...inputStyle,
+        paddingRight: 44,
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      style={{
+        position: 'absolute',
+        right: 10,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        fontSize: 16,
+      }}
+    >
+      {showConfirmPassword ? '🙈' : '👁️'}
+    </button>
+  </div>
+</div>
 
       <button
         type="button"
@@ -803,16 +853,39 @@ try {
                     />
                   </div>
 
-                  <div>
-                    <label style={labelStyle}>Contraseña</label>
+                 <div>
+                  <label style={labelStyle}>Contraseña</label>
+
+                  <div style={{ position: 'relative' }}>
                     <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Mínimo 6 caracteres"
-                      style={inputStyle}
+                      type={showLoginPassword ? 'text' : 'password'}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Ingresá tu contraseña"
+                      style={{
+                        ...inputStyle,
+                        paddingRight: 44,
+                      }}
                     />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: 10,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        fontSize: 16,
+                      }}
+                    >
+                      {showLoginPassword ? '🙈' : '👁️'}
+                    </button>
                   </div>
+                </div>
 
                   <div>
                     <label style={labelStyle}>Confirmar contraseña</label>
