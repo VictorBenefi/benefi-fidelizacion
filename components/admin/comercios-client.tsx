@@ -41,9 +41,18 @@ function getComercioNombre(comercio: Comercio) {
   );
 }
 
-function buildPortalUrl(comercio: Comercio) {
-  if (!comercio?.id) return "";
-  return `/${comercio.slug}`
+function buildPortalUrl(comercio: any) {
+  if (!comercio?.slug) return "";
+
+  const base = "https://fidelizacion.benefi.com.ar";
+
+  return `${base}/${comercio.slug}`;
+}
+function buildComercioLoginUrl(comercio: any) {
+  if (!comercio?.slug) return "";
+
+  const base = "https://fidelizacion.benefi.com.ar";
+  return `${base}/${comercio.slug}/login`;
 }
 
 export default function ComerciosClient() {
@@ -242,7 +251,7 @@ export default function ComerciosClient() {
     }
   }
   function generarQR(url: string) {
-  const urlCompleta = `${window.location.origin}${url}`;
+  const urlCompleta = url;
   const qr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(urlCompleta)}`;
   setQrUrl(qr);
 }
@@ -272,7 +281,7 @@ async function descargarQR() {
 
 async function copiarUrl(url: string) {
   try {
-    await navigator.clipboard.writeText(`${window.location.origin}${url}`);
+    await navigator.clipboard.writeText(url);
     setMensaje("URL copiada correctamente");
     setMensajeTipo("ok");
   } catch (error) {
@@ -606,7 +615,7 @@ async function copiarUrl(url: string) {
                           >
                             Abrir
                           </a>
-
+                          
                           <button
                             onClick={() => copiarUrl(buildPortalUrl(comercio))}
                             className="cursor-pointer rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -620,6 +629,13 @@ async function copiarUrl(url: string) {
                           >
                             Ver QR
                           </button>
+                            <a
+                            href={buildComercioLoginUrl(comercio)}
+                            target="_blank"
+                            className="px-2 py-1 text-xs bg-blue-100 border rounded hover:bg-blue-200 text-center"
+                          >
+                            Login comercio
+                          </a>
                         </div>
                       </td>
 
