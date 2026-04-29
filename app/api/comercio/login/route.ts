@@ -7,6 +7,7 @@ export async function POST(req: Request) {
 
     const email = String(body.email || "").trim().toLowerCase();
     const password = String(body.password || "").trim();
+    const slug = String(body.slug || "").trim().toLowerCase();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -15,7 +16,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data, error } = await supabaseAdmin
+    // 1. Buscar comercio por email
+    const { data: comercio, error } = await supabaseAdmin
       .from("comercios")
       .select("*")
       .ilike("email", email)
@@ -29,21 +31,22 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!data) {
+    if (!comercio) {
       return NextResponse.json(
         { error: "Credenciales inválidas" },
         { status: 400 }
       );
     }
 
-    if (data.activo === false) {
+    if (comercio.activo === false) {
       return NextResponse.json(
         { error: "El comercio está inactivo." },
         { status: 400 }
       );
     }
 
-    const savedPassword = String(data.password || "").trim();
+    // 2. Validar contraseña
+    const savedPassword = String(comercio.password || "").trim();
 
     if (savedPassword !== password) {
       return NextResponse.json(
@@ -52,16 +55,41 @@ export async function POST(req: Request) {
       );
     }
 
+    // 3. VALIDACIÓN DE SLUG (🔥 LO IMPORTANTE)
+    if (slug) {
+      const { data: campania } = await supabaseAdmin
+        .from("campaign_settings")
+        .select("id")
+        .eq("slug", slug)
+        .eq("activa", true)
+        .single();
+
+      if (!campania) {
+        return NextResponse.json(
+          { error: "Campaña inválida." },
+          { status: 400 }
+        );
+      }
+
+      if (comercio.campaign_id !== campania.id) {
+        return NextResponse.json(
+          { error: "Este usuario no pertenece a este comercio." },
+          { status: 403 }
+        );
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       comercio: {
-        id: data.id,
-        nombre_fantasia: data.nombre_fantasia,
-        razon_social: data.razon_social,
-        email: data.email,
-        slug: data.slug,
+        id: comercio.id,
+        nombre_fantasia: comercio.nombre_fantasia,
+        razon_social: comercio.razon_social,
+        email: comercio.email,
+        slug: comercio.slug,
       },
     });
+
   } catch (error) {
     console.error("Error en login comercio:", error);
     return NextResponse.json(
