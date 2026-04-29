@@ -27,25 +27,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: comercio, error: comercioError } = await supabaseAdmin
-      .from("comercios")
-      .select("id, nombre_fantasia, razon_social, activo, campaign_id")
-      .eq("campaign_id", campania.id)
-      .single();
+    const { data: comercio } = await supabaseAdmin
+    .from("comercios")
+    .select("*")
+    .eq("slug", slug)
+    .single();
 
-    if (comercioError || !comercio) {
-      return NextResponse.json(
-        { error: "No se encontró el comercio asociado" },
-        { status: 404 }
-      );
-    }
+      if (error) {
+        return NextResponse.json(
+          { error: "Error al buscar comercio" },
+          { status: 500 }
+        );
+      }
 
-    if (comercio.activo === false) {
-      return NextResponse.json(
-        { error: "El comercio está inactivo" },
-        { status: 400 }
-      );
-    }
+      if (!comercio) {
+        return NextResponse.json(
+          { error: "No se encontró el comercio" },
+          { status: 404 }
+        );
+      }
 
     return NextResponse.json({
       id: comercio.id,

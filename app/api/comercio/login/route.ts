@@ -17,10 +17,16 @@ export async function POST(req: Request) {
     }
 
     // 1. Buscar comercio por email
-    const { data: comercio, error } = await supabaseAdmin
+    const query = supabaseAdmin
       .from("comercios")
       .select("*")
-      .ilike("email", email)
+      .ilike("email", email);
+
+    if (slug) {
+      query.eq("slug", slug);
+    }
+
+    const { data: comercio, error } = await query
       .limit(1)
       .maybeSingle();
 
