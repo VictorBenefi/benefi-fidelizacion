@@ -13,29 +13,49 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data, error } = await supabaseAdmin
-      .from("comercios")
-      .select("id, slug, nombre_fantasia, razon_social, activo")
+    const { data: campania, error: campaniaError } = await supabaseAdmin
+      .from("campaign_settings")
+      .select("id, slug, activa")
       .eq("slug", slug)
+      .eq("activa", true)
       .single();
 
-    if (error || !data) {
+    if (campaniaError || !campania) {
       return NextResponse.json(
-        { error: "No se encontró el comercio" },
+        { error: "No se encontró la campaña" },
         { status: 404 }
       );
     }
 
-    if (data.activo === false) {
+    const { data: comercio, error: comercioError } = await supabaseAdmin
+      .from("comercios")
+      .select("id, nombre_fantasia, razon_social, activo, campaign_id")
+      .eq("campaign_id", campania.id)
+      .single();
+
+    if (comercioError || !comercio) {
+      return NextResponse.json(
+        { error: "No se encontró el comercio asociado" },
+        { status: 404 }
+      );
+    }
+
+    if (comercio.activo === false) {
       return NextResponse.json(
         { error: "El comercio está inactivo" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json({
+      id: comercio.id,
+      nombre_fantasia: comercio.nombre_fantasia,
+      razon_social: comercio.razon_social,
+      slug,
+    });
   } catch (error) {
     console.error("Error resolviendo slug:", error);
+
     return NextResponse.json(
       { error: "Ocurrió un error al resolver el slug" },
       { status: 500 }
