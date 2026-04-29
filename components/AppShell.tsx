@@ -13,14 +13,21 @@ export default function AppShell({
 }) {
   const pathname = usePathname();
 
-  const isPublicRoute =
-    pathname === "/login" ||
-    pathname === "/comercio/login" ||
-    pathname?.startsWith("/usuarios");
+const isPublicRoute =
+  pathname === "/" ||
+  pathname === "/login" ||
+  pathname === "/comercio/login" ||
+  pathname?.startsWith("/usuarios") ||
+  (
+    pathname.split("/").length === 2 && // solo primer nivel (ej: /cafecentro)
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/comercio")
+  );
 
-  if (isPublicRoute) {
-    return <>{children}</>;
-  }
+if (isPublicRoute) {
+  return <>{children}</>;
+}
 
   return (
     <AuthGuard>
