@@ -227,8 +227,7 @@ export default function DashboardUsuario() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          usuario_id: item.usuario_id,
-          notificacion_id: item.notificacion_id || item.notificacion?.id,
+        id: item.id,
         }),
       })
 
