@@ -2,9 +2,24 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 export async function POST(req: Request) {
+  let createdAuthUserId: string | null = null
+
   try {
     const body = await req.json()
-    const { email, password, nombre_completo, dni, telefono, comercio_id } = body
+
+    const email = String(body.email || '').trim().toLowerCase()
+    const password = String(body.password || '').trim()
+    const nombre_completo = String(body.nombre_completo || '').trim()
+    const dni = String(body.dni || '').trim()
+    const telefono = String(body.telefono || '').trim()
+    const comercio_id = String(body.comercio_id || '').trim()
+
+    if (!email || !password || !nombre_completo || !dni || !comercio_id) {
+      return NextResponse.json(
+        { ok: false, error: 'Faltan datos obligatorios.' },
+        { status: 400 }
+      )
+    }
 
     const { data: authUser, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
@@ -13,34 +28,81 @@ export async function POST(req: Request) {
         email_confirm: true,
       })
 
-    if (authError) {
-      return NextResponse.json({ ok: false, error: authError.message })
+    if (authError || !authUser?.user?.id) {
+      return NextResponse.json(
+        { ok: false, error: authError?.message || 'No se pudo crear el usuario.' },
+        { status: 400 }
+      )
     }
 
-    const userId = authUser.user.id
+    createdAuthUserId = authUser.user.id
 
-    await supabaseAdmin.from('usuarios').insert({
-      id: userId,
+    const { error: usuarioError } = await supabaseAdmin.from('usuarios').insert({
+      id: createdAuthUserId,
       nombre_completo,
       dni,
       email,
       telefono,
-      auth_user_id: userId,
+      auth_user_id: createdAuthUserId,
     })
 
-    await supabaseAdmin.from('usuarios_comercios').insert({
-      usuario_id: userId,
-      comercio_id,
-    })
+    if (usuarioError) {
+      await supabaseAdmin.auth.admin.deleteUser(createdAuthUserId)
 
-    await supabaseAdmin.from('saldos').insert({
-      usuario_id: userId,
+      return NextResponse.json(
+        { ok: false, error: `No se pudo guardar el usuario: ${usuarioError.message}` },
+        { status: 400 }
+      )
+    }
+
+    const { error: relacionError } = await supabaseAdmin
+      .from('usuarios_comercios')
+      .insert({
+        usuario_id: createdAuthUserId,
+        comercio_id,
+      })
+
+    if (relacionError) {
+      await supabaseAdmin.from('usuarios').delete().eq('id', createdAuthUserId)
+      await supabaseAdmin.auth.admin.deleteUser(createdAuthUserId)
+
+      return NextResponse.json(
+        { ok: false, error: `No se pudo vincular el usuario al comercio: ${relacionError.message}` },
+        { status: 400 }
+      )
+    }
+
+    const { error: saldoError } = await supabaseAdmin.from('saldos').insert({
+      usuario_id: createdAuthUserId,
       comercio_id,
       saldo: 0,
     })
 
-    return NextResponse.json({ ok: true })
+    if (saldoError) {
+      await supabaseAdmin
+        .from('usuarios_comercios')
+        .delete()
+        .eq('usuario_id', createdAuthUserId)
+        .eq('comercio_id', comercio_id)
+
+      await supabaseAdmin.from('usuarios').delete().eq('id', createdAuthUserId)
+      await supabaseAdmin.auth.admin.deleteUser(createdAuthUserId)
+
+      return NextResponse.json(
+        { ok: false, error: `No se pudo crear el saldo inicial: ${saldoError.message}` },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json({ ok: true, usuario_id: createdAuthUserId })
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message })
+    if (createdAuthUserId) {
+      await supabaseAdmin.auth.admin.deleteUser(createdAuthUserId)
+    }
+
+    return NextResponse.json(
+      { ok: false, error: e?.message || 'Ocurrió un error al registrar el usuario.' },
+      { status: 500 }
+    )
   }
 }
