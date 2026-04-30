@@ -13,12 +13,15 @@ export async function POST(req: Request) {
       );
     }
 
+    const hoy = new Date().toISOString().split("T")[0];
     const { data, error } = await supabaseAdmin
-      .from("promociones")
-      .select("*")
-      .eq("comercio_id", comercio_id)
-      .eq("activa", true)
-      .order("created_at", { ascending: false });
+    .from("promociones")
+    .select("*")
+    .eq("comercio_id", comercio_id)
+    .eq("activa", true)
+    .lte("fecha_inicio", hoy)
+    .gte("fecha_fin", hoy)
+    .order("created_at", { ascending: false });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
