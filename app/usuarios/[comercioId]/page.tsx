@@ -336,11 +336,25 @@ export default function UsuariosPage() {
         return
       }
 
+      if (data.usuario_existente) {
+        setMensaje(
+          'Ya tenías una cuenta registrada. Te vinculamos a este comercio. Ingresá con tu email y contraseña habitual.'
+        )
+        setMensajeTipo('ok')
+
+        setLoginEmail(email.trim())
+        setLoginPassword('')
+        setPassword('')
+        setConfirmPassword('')
+        setTab('login')
+
+        return
+      }
+
       const { error: loginError } = await supabaseClient.auth.signInWithPassword({
         email: email.trim(),
         password,
       })
-
       if (loginError) {
         setMensaje(
           'La cuenta fue creada, pero no se pudo iniciar sesión automáticamente. Probá ingresar manualmente.'
