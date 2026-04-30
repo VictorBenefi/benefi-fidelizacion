@@ -348,28 +348,39 @@ export default function DashboardUsuario() {
                       const notif = item.notificacion
                       if (!notif) return null
 
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => marcarLeida(item)}
-                          style={{
-                            ...notificationMiniStyle,
-                            background: item.leida ? '#ffffff' : '#eff6ff',
-                            borderColor: item.leida ? '#e5e7eb' : '#bfdbfe',
-                          }}
-                        >
-                          <div style={{ fontSize: 12, fontWeight: 800, color: '#a16207' }}>
-                            {notif.tipo?.toUpperCase() || 'INFO'}
-                          </div>
-                          <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>
-                            {notif.titulo}
-                          </div>
-                          <div style={{ fontSize: 12, color: '#64748b' }}>
-                            {notif.mensaje}
-                          </div>
-                        </button>
-                      )
+                     return (
+  <button
+    key={item.id}
+    type="button"
+    onClick={() => marcarLeida(item)}
+    style={{
+      ...notificationMiniStyle,
+      background: item.leida ? '#ffffff' : '#eff6ff',
+      borderColor: item.leida ? '#e5e7eb' : '#bfdbfe',
+      textAlign: 'left',
+    }}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <strong>{notif.titulo}</strong>
+
+      {!item.leida && (
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: '#2563eb',
+          }}
+        >
+          Marcar leída
+        </span>
+      )}
+    </div>
+
+    <div style={{ fontSize: 13, marginTop: 4, opacity: 0.8 }}>
+      {notif.mensaje}
+    </div>
+  </button>
+)
                     })}
                   </div>
                 )}
