@@ -21,6 +21,67 @@ export async function POST(req: Request) {
       )
     }
 
+    const { data: usuarioExistente } = await supabaseAdmin
+      .from('usuarios')
+      .select('id, email, dni, auth_user_id')
+      .eq('dni', dni)
+      .maybeSingle()
+
+    if (usuarioExistente) {
+      const { data: relacionExistente } = await supabaseAdmin
+        .from('usuarios_comercios')
+        .select('id')
+        .eq('usuario_id', usuarioExistente.id)
+        .eq('comercio_id', comercio_id)
+        .maybeSingle()
+
+      if (!relacionExistente) {
+        const { error: relacionError } = await supabaseAdmin
+          .from('usuarios_comercios')
+          .insert({
+            usuario_id: usuarioExistente.id,
+            comercio_id,
+          })
+
+        if (relacionError) {
+          return NextResponse.json(
+            { ok: false, error: `No se pudo vincular el usuario al comercio: ${relacionError.message}` },
+            { status: 400 }
+          )
+        }
+      }
+
+      const { data: saldoExistente } = await supabaseAdmin
+        .from('saldos')
+        .select('id')
+        .eq('usuario_id', usuarioExistente.id)
+        .eq('comercio_id', comercio_id)
+        .maybeSingle()
+
+      if (!saldoExistente) {
+        const { error: saldoError } = await supabaseAdmin
+          .from('saldos')
+          .insert({
+            usuario_id: usuarioExistente.id,
+            comercio_id,
+            saldo: 0,
+          })
+
+        if (saldoError) {
+          return NextResponse.json(
+            { ok: false, error: `No se pudo crear el saldo inicial: ${saldoError.message}` },
+            { status: 400 }
+          )
+        }
+      }
+
+      return NextResponse.json({
+        ok: true,
+        usuario_id: usuarioExistente.id,
+        usuario_existente: true,
+      })
+    }
+
     const { data: authUser, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
