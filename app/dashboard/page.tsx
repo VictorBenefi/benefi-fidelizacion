@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { usePortalCampaign } from '@/hooks/usePortalCampaign'
 import { getCurrentComercio } from '@/lib/getCurrentComercio'
+import SidebarLayout from '@/components/SidebarLayout'
 
 type DashboardData = {
   ok: boolean
@@ -27,7 +28,7 @@ type DashboardData = {
   error?: string
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const campaign = usePortalCampaign()
 
   const [comercioId, setComercioId] = useState('')
@@ -854,6 +855,15 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+  )
+}
+
+
+export default function Dashboard() {
+  return (
+    <SidebarLayout>
+      <DashboardContent />
+    </SidebarLayout>
   )
 }
 
