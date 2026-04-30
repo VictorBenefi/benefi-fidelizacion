@@ -660,17 +660,20 @@ const logoutButtonStyle: React.CSSProperties = {
 }
 
 const notificationPanelStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: 50,
-  right: 0,
-  zIndex: 20,
-  width: 340,
-  maxWidth: 'calc(100vw - 32px)',
+  position: 'fixed',
+  top: 92,
+  left: 16,
+  right: 16,
+  zIndex: 50,
+  width: 'auto',
+  maxWidth: 520,
+  margin: '0 auto',
   background: '#ffffff',
   border: '1px solid #e5e7eb',
   borderRadius: 18,
   boxShadow: '0 18px 45px rgba(15, 23, 42, 0.18)',
   padding: 14,
+  boxSizing: 'border-box',
 }
 
 const notificationPanelHeaderStyle: React.CSSProperties = {
