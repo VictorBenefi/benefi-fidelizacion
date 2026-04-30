@@ -86,6 +86,24 @@ function getAplicaALabel(value?: string | null) {
   return found?.label || value;
 }
 
+function getEstadoPromo(promo: Promocion) {
+  const hoy = new Date().toISOString().split("T")[0];
+
+  if (!promo.activa) {
+    return { label: "Inactiva", color: "bg-slate-100 text-slate-600" };
+  }
+
+  if (promo.fecha_fin && promo.fecha_fin < hoy) {
+    return { label: "Vencida", color: "bg-red-100 text-red-700" };
+  }
+
+  if (promo.fecha_inicio && promo.fecha_inicio > hoy) {
+    return { label: "Pendiente", color: "bg-yellow-100 text-yellow-700" };
+  }
+
+  return { label: "Activa", color: "bg-green-100 text-green-700" };
+}
+
 export default function PromocionesClient() {
   const [promociones, setPromociones] = useState<Promocion[]>([]);
   const [comercios, setComercios] = useState<Comercio[]>([]);
@@ -717,16 +735,18 @@ export default function PromocionesClient() {
                         {formatDate(promo.fecha_inicio)} / {formatDate(promo.fecha_fin)}
                       </td>
                       <td className="py-4 pr-4">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                            promo.activa
-                              ? "bg-green-100 text-green-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {promo.activa ? "Activa" : "Inactiva"}
-                        </span>
-                      </td>
+                      {(() => {
+                        const estado = getEstadoPromo(promo);
+
+                        return (
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${estado.color}`}
+                          >
+                            {estado.label}
+                          </span>
+                        );
+                      })()}
+                    </td>
                       <td className="py-4 pr-4">
                         <div className="flex flex-wrap gap-2">
                           <button
