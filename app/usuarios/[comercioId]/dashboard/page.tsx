@@ -39,6 +39,7 @@ export default function DashboardUsuario() {
   const [saldo, setSaldo] = useState(0)
   const [movimientos, setMovimientos] = useState<any[]>([])
   const [notificaciones, setNotificaciones] = useState<NotificacionRelacion[]>([])
+  const [beneficios, setBeneficios] = useState([]);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -52,6 +53,16 @@ export default function DashboardUsuario() {
         if (!user) {
           router.push(`/usuarios/${comercioId}`)
           return
+        }
+        const resBeneficios = await fetch("/api/promociones/listar", {
+          method: "POST",
+          body: JSON.stringify({ comercio_id: comercioId }),
+        });
+
+        const dataBeneficios = await resBeneficios.json();
+
+        if (dataBeneficios?.ok) {
+          setBeneficios(dataBeneficios.promociones || []);
         }
 
         const { data: usuarioData } = await supabaseClient
@@ -402,10 +413,47 @@ export default function DashboardUsuario() {
             {saldo} pts
           </div>
 
+          <div style={{ fontSize: 14, opacity: 0.9 }}>
+            = ${saldo} en beneficios
+          </div>
+
           <div style={{ fontSize: 15, opacity: 0.92 }}>
             Usalos en {branding.nombrePrograma}
           </div>
         </section>
+        {beneficios.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-slate-800 mb-3">
+              🎁 Beneficios disponibles hoy
+            </h3>
+
+            <div className="grid gap-3">
+              {beneficios.map((b: any) => (
+                <div
+                  key={b.id}
+                  className="flex items-center justify-between rounded-xl border border-slate-200 p-4 bg-white"
+                >
+                  <div>
+                    <div className="font-medium text-slate-800">
+                      {b.nombre}
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      {b.tipo === "porcentaje"
+                        ? `${b.valor}% de descuento`
+                        : b.tipo === "tramo"
+                        ? `+${b.puntos_por_tramo} pts cada $${b.cada_monto}`
+                        : `${b.valor} pts`}
+                    </div>
+                  </div>
+
+                  <button className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700">
+                    Usar
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <section style={cardsGridStyle}>
           <InfoCard
@@ -459,6 +507,29 @@ export default function DashboardUsuario() {
 
                     <div style={notificationTitleStyle}>{notif.titulo}</div>
                     <div style={notificationTextStyle}>{notif.mensaje}</div>
+                    {!item.leida && (
+                      <div style={{ marginTop: 8 }}>
+                        <button
+                          type="button"
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: '#2563eb',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            marcarLeida(item)
+                            window.location.href = "/terminal"
+                          }}
+                        >
+                          Ver beneficio →
+                        </button>
+                      </div>
+                    )}
 
                     <div style={notificationDateStyle}>
                       {notif.created_at
@@ -484,38 +555,86 @@ export default function DashboardUsuario() {
             <div style={movementListStyle}>
               {ultimosMovimientos.map((mov) => {
                 const esCarga = mov.tipo === 'carga'
-                const titulo = esCarga ? 'Ganaste puntos' : 'Usaste puntos'
+                const esCanje = mov.tipo === 'canje'
+                const esAnulado = mov.estado === 'anulado'
+
+                const titulo = esCarga
+                  ? 'Ganaste puntos'
+                  : esCanje
+                  ? 'Usaste puntos'
+                  : 'Movimiento'
+
+                const icono = esCarga ? '⬆️' : esCanje ? '⬇️' : '🔄'
+                const color = esCarga ? '#16a34a' : esCanje ? '#dc2626' : '#2563eb'
 
                 return (
                   <div
                     key={mov.id}
                     style={{
                       ...movementItemStyle,
-                      opacity: mov.estado === 'anulado' ? 0.5 : 1,
+                      opacity: esAnulado ? 0.55 : 1,
+                      background: esAnulado ? '#f8fafc' : '#ffffff',
                     }}
                   >
-                    <div>
-                      <div style={movementTitleStyle}>
-                        {titulo}
-                        {mov.estado === 'anulado' && (
-                          <span style={anuladoBadgeStyle}>ANULADO</span>
-                        )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                      <div
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 14,
+                          background: esCarga ? '#dcfce7' : esCanje ? '#fee2e2' : '#dbeafe',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 20,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {icono}
                       </div>
 
-                      <div style={movementDateStyle}>
-                        {mov.created_at
-                          ? new Date(mov.created_at).toLocaleString('es-AR')
-                          : ''}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={movementTitleStyle}>
+                          {titulo}
+                          {esAnulado && (
+                            <span style={anuladoBadgeStyle}>ANULADO</span>
+                          )}
+                        </div>
+
+                        <div style={movementDateStyle}>
+                          {mov.created_at
+                            ? new Date(mov.created_at).toLocaleString('es-AR')
+                            : ''}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 5,
+                            color: '#64748b',
+                            fontSize: 12,
+                            lineHeight: '18px',
+                          }}
+                        >
+                          {mov.nro_ticket ? `Ticket: ${mov.nro_ticket}` : 'Operación del programa'}
+                          {mov.monto_compra ? ` · Compra: $${Number(mov.monto_compra).toLocaleString('es-AR')}` : ''}
+                        </div>
                       </div>
                     </div>
 
-                    <div
-                      style={{
-                        ...movementPointsStyle,
-                        color: esCarga ? '#16a34a' : '#dc2626',
-                      }}
-                    >
-                      {esCarga ? '+' : '-'} {Number(mov.puntos || 0)}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div
+                        style={{
+                          ...movementPointsStyle,
+                          color,
+                        }}
+                      >
+                        {esCarga ? '+' : esCanje ? '-' : ''}
+                        {Number(mov.puntos || 0)}
+                      </div>
+
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                        {Number(mov.puntos || 0) === 1 ? 'punto' : 'puntos'}
+                      </div>
                     </div>
                   </div>
                 )
