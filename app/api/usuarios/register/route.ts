@@ -168,10 +168,16 @@ export async function POST(req: Request) {
     comercio_id,
     })
     
+    const { data: comercioData } = await supabaseAdmin
+    .from("comercios")
+    .select("nombre")
+    .eq("id", comercio_id)
+    .single()
+
     await enviarBienvenida({
-    email,
-    nombre: nombre_completo,
-    comercio: comercio_id,
+      email,
+      nombre: nombre_completo,
+      comercio: comercioData?.nombre || "tu comercio",
     })
     
     const { error: relacionError } = await supabaseAdmin

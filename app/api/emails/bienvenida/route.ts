@@ -30,10 +30,40 @@ export async function POST(req: Request) {
         subject: 'Bienvenido a Benefi 🎉',
         text: `Hola ${nombre}, te damos la bienvenida a Benefi.`,
         html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2>Bienvenido ${nombre} 👋</h2>
-          <p>Ya podés empezar a usar tus beneficios en ${comercio}.</p>
-        `,
-        category: 'Bienvenida',
+
+          <p>
+            Ya formás parte del programa de beneficios de 
+            <strong>${comercio}</strong>.
+          </p>
+
+          <p>
+            A partir de ahora vas a poder:
+          </p>
+
+          <ul>
+            <li>✨ Acumular puntos con tus compras</li>
+            <li>🎁 Canjear beneficios exclusivos</li>
+            <li>🏷️ Acceder a promociones especiales</li>
+          </ul>
+
+          <p>
+            Te recomendamos ingresar a tu cuenta y comenzar a aprovechar tus beneficios.
+          </p>
+
+          <br />
+
+          <p>
+            ¡Gracias por ser parte! 🚀
+          </p>
+
+          <p style="margin-top:20px; font-size:12px; color:#888;">
+            Equipo BENEFI
+          </p>
+        </div>
+      `,
+      category: 'Bienvenida',
       }),
     })
 
