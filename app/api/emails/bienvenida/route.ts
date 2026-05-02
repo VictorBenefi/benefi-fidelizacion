@@ -53,7 +53,7 @@ export async function POST(req: Request) {
           </p>
           <div style="margin-top: 20px;">
             <a 
-              href="https://fidelizacion.benefi.com.ar/usuarios/${comercioId}" 
+              href="https://fidelizacion.benefi.com.ar/usuarios/${comercioId}/dashboard"
               style="
                 background-color: #2563eb;
                 color: white;
