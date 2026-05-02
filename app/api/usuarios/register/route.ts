@@ -1,6 +1,52 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+
+
+async function enviarBienvenida({
+  email,
+  nombre,
+  comercio,
+}: {
+  email: string
+  nombre: string
+  comercio: string
+}) {
+  console.log("ENTRO A enviarBienvenida", { email, nombre, comercio })
+
+  try {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000")
+
+    console.log("BASE URL EMAIL:", baseUrl)
+
+    const response = await fetch(`${baseUrl}/api/emails/bienvenida`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        nombre,
+        comercio,
+      }),
+    })
+
+    const data = await response.json()
+
+    console.log("RESPUESTA EMAIL:", data)
+
+    if (!response.ok) {
+      console.error("ERROR RESPUESTA EMAIL:", data)
+    }
+  } catch (error) {
+    console.error("Error enviando email bienvenida:", error)
+  }
+}
+
 export async function POST(req: Request) {
   let createdAuthUserId: string | null = null
 
@@ -116,6 +162,18 @@ export async function POST(req: Request) {
       )
     }
 
+    console.log("VOY A ENVIAR EMAIL BIENVENIDA", {
+    email,
+    nombre_completo,
+    comercio_id,
+    })
+    
+    await enviarBienvenida({
+    email,
+    nombre: nombre_completo,
+    comercio: comercio_id,
+    })
+    
     const { error: relacionError } = await supabaseAdmin
       .from('usuarios_comercios')
       .insert({
