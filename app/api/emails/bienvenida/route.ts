@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
-    const { email, nombre, comercio } = await req.json()
+    const { email, nombre, comercio, comercioId } = await req.json()
 
     if (!email) {
       return NextResponse.json(
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
           </p>
           <div style="margin-top: 20px;">
             <a 
-              href="https://fidelizacion.benefi.com.ar" 
+              href="https://fidelizacion.benefi.com.ar/usuarios/${comercioId}" 
               style="
                 background-color: #2563eb;
                 color: white;

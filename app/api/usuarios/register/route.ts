@@ -7,10 +7,12 @@ async function enviarBienvenida({
   email,
   nombre,
   comercio,
+  comercioId,
 }: {
   email: string
   nombre: string
   comercio: string
+  comercioId: string
 }) {
   console.log("ENTRO A enviarBienvenida", { email, nombre, comercio })
 
@@ -32,6 +34,7 @@ async function enviarBienvenida({
         email,
         nombre,
         comercio,
+        comercioId,
       }),
     })
 
@@ -187,6 +190,7 @@ export async function POST(req: Request) {
       email,
       nombre: nombre_completo,
       comercio: nombreComercio,
+      comercioId: comercio_id,
     })
     
     const { error: relacionError } = await supabaseAdmin
