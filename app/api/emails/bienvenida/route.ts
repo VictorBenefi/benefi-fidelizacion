@@ -51,7 +51,22 @@ export async function POST(req: Request) {
           <p>
             Te recomendamos ingresar a tu cuenta y comenzar a aprovechar tus beneficios.
           </p>
-
+          <div style="margin-top: 20px;">
+            <a 
+              href="https://fidelizacion.benefi.com.ar" 
+              style="
+                background-color: #2563eb;
+                color: white;
+                padding: 12px 20px;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                display: inline-block;
+              "
+            >
+              Ir a mi cuenta
+            </a>
+          </div>
           <br />
 
           <p>
