@@ -70,6 +70,7 @@ export default function Home() {
   const [mensaje, setMensaje] = useState('')
   const [mensajeColor, setMensajeColor] = useState<'ok' | 'error' | ''>('')
   const [loading, setLoading] = useState(false)
+  const [verificandoComercio, setVerificandoComercio] = useState(true)
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
 
   const [anulandoOperacionId, setAnulandoOperacionId] = useState<string | null>(null)
@@ -83,27 +84,44 @@ export default function Home() {
   const [fechaHastaComercio, setFechaHastaComercio] = useState('')
 
 useEffect(() => {
-  async function loadComercio() {
-    try {
-      const comercio = await getCurrentComercio();
+async function loadComercio() {
+  try {
+    const comercio = await getCurrentComercio();
 
-      if (comercio?.id) {
-        setComercioId(comercio.id);
-        return;
-      }
-
-      console.error("No se encontró comercio para el usuario logueado");
-
-      if (typeof window !== "undefined") {
-        window.location.href = "/comercio/login";
-      }
-    } catch (error) {
-      console.error("Error obteniendo comercio actual", error);
+    if (comercio?.id) {
+      setComercioId(comercio.id);
+      return;
     }
+
+    console.warn("No se encontró comercio para el usuario logueado");
+
+    if (typeof window !== "undefined") {
+      window.location.href = "/comercio/login";
+    }
+  } catch (error) {
+    console.error("Error obteniendo comercio actual", error);
+  } finally {
+    setVerificandoComercio(false); // 👈 ACÁ
   }
+}
 
   loadComercio();
 }, []);
+    if (verificandoComercio) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f8fafc',
+          color: '#0f172a',
+          fontWeight: 700,
+        }}>
+          Verificando acceso...
+        </div>
+      )
+    }
 
   const limpiarMensajes = () => {
     setMensaje('')
