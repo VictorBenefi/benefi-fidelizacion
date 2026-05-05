@@ -70,7 +70,6 @@ export default function Home() {
   const [mensaje, setMensaje] = useState('')
   const [mensajeColor, setMensajeColor] = useState<'ok' | 'error' | ''>('')
   const [loading, setLoading] = useState(false)
-  const [verificandoComercio, setVerificandoComercio] = useState(true)
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false)
 
   const [anulandoOperacionId, setAnulandoOperacionId] = useState<string | null>(null)
@@ -98,31 +97,14 @@ async function loadComercio() {
     if (typeof window !== "undefined") {
       window.location.href = "/comercio/login";
     }
-  } catch (error) {
-    console.error("Error obteniendo comercio actual", error);
-  } finally {
-    setVerificandoComercio(false); // 👈 ACÁ
+    } catch (error) {
+      console.error("Error obteniendo comercio actual", error);
+    }
   }
-}
 
   loadComercio();
 }, []);
-    if (verificandoComercio) {
-      return (
-        <div style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#f8fafc',
-          color: '#0f172a',
-          fontWeight: 700,
-        }}>
-          Verificando acceso...
-        </div>
-      )
-    }
-
+  
   const limpiarMensajes = () => {
     setMensaje('')
     setMensajeColor('')
