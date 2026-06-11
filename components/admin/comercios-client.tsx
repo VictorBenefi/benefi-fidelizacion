@@ -67,6 +67,7 @@ export default function ComerciosClient() {
   const [mensaje, setMensaje] = useState("");
   const [mensajeTipo, setMensajeTipo] = useState<"ok" | "error" | "">("");
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   
   async function fetchData() {
     try {
@@ -133,6 +134,7 @@ export default function ComerciosClient() {
       password: comercio.password || "",
     });
     setEditingId(comercio.id || null);
+    setMostrarFormulario(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -318,11 +320,26 @@ async function copiarUrl(url: string) {
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div>
-          <h1 className="text-4xl font-bold text-slate-900">Comercios</h1>
-          <p className="mt-2 text-base leading-7 text-slate-600">
-            Creá comercios, editá sus datos, definí sus credenciales y copiales la URL del portal de usuarios para compartir registro o generar el QR más adelante.
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900">Comercios</h1>
+            <p className="mt-2 text-base leading-7 text-slate-600">
+              Creá comercios, editá sus datos, definí sus credenciales y copiales la URL del portal de usuarios para compartir registro o generar el QR más adelante.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (mostrarFormulario) {
+                resetForm();
+              }
+              setMostrarFormulario((prev) => !prev);
+            }}
+            className="whitespace-nowrap rounded-xl bg-slate-950 px-5 py-3 text-base font-medium text-white hover:bg-slate-800"
+          >
+            {mostrarFormulario ? "Ocultar formulario" : "+ Nuevo comercio"}
+          </button>
         </div>
 
         {mensaje && (
@@ -338,6 +355,7 @@ async function copiarUrl(url: string) {
         )}
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          {mostrarFormulario && (
           <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-200 px-6 py-5">
               <h2 className="text-2xl font-semibold text-slate-900">
@@ -496,7 +514,7 @@ async function copiarUrl(url: string) {
               </div>
             </div>
           </div>
-
+          )}
           <div className="space-y-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="text-base font-medium text-slate-500">Comercios</div>
@@ -523,6 +541,7 @@ async function copiarUrl(url: string) {
               </div>
             </div>
           </div>
+          
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
