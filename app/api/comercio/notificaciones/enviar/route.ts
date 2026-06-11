@@ -194,7 +194,7 @@ const resultadosEmail = await Promise.allSettled(
         body: JSON.stringify({
           from: {
             email: process.env.MAILTRAP_FROM_EMAIL,
-            name: process.env.MAILTRAP_FROM_NAME,
+            name: comercio || process.env.MAILTRAP_FROM_NAME || "BENEFI",
           },
           to: [
             {
@@ -243,7 +243,7 @@ const resultadosEmail = await Promise.allSettled(
               </div>
 
               <p style="margin-top:20px; font-size:12px; color:#888;">
-                Equipo BENEFI
+                Equipo de ${comercio}
               </p>
             </div>
           `,
