@@ -20,14 +20,14 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         from: {
           email: process.env.MAILTRAP_FROM_EMAIL,
-          name: process.env.MAILTRAP_FROM_NAME,
+          name: comercio || process.env.MAILTRAP_FROM_NAME || "BENEFI",
         },
         to: [
           {
             email,
           },
         ],
-        subject: 'Bienvenido a Benefi 🎉',
+        subject: `Bienvenido a ${comercio} 🎉`,
         text: `Hola ${nombre}, te damos la bienvenida a Benefi.`,
         html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
           </p>
 
           <p style="margin-top:20px; font-size:12px; color:#888;">
-            Equipo BENEFI
+            Equipo de ${comercio}
           </p>
         </div>
       `,
