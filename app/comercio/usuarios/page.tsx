@@ -78,13 +78,18 @@ async function cargarUsuarios() {
     console.log("COMERCIO ID ENVIADO:", comercioId)
     console.log("RESPUESTA USUARIOS LISTADO:", data)
 
-    if (!res.ok || !data.ok) {
-      console.error('Error cargando usuarios:', data?.error)
-      setUsuarios([])
-      return
-    }
+    if (!res.ok) {
+    console.error('Error cargando usuarios:', data?.error)
+    setUsuarios([])
+    return
+  }
 
-    setUsuarios(data.usuarios || [])
+  const usuariosListado = Array.isArray(data)
+    ? data
+    : data.usuarios || []
+
+  setUsuarios(usuariosListado)
+
   } catch (error) {
     console.error('Error cargando usuarios:', error)
     setUsuarios([])
