@@ -52,11 +52,28 @@ export default function UsuariosPage() {
     cargarUsuarios();
   }, []);
 
-  async function cargarUsuarios() {
+async function cargarUsuarios() {
   setLoading(true)
 
   try {
-    const res = await fetch('/api/comercio/usuarios')
+    const comercioId = localStorage.getItem('comercio_id')
+
+    if (!comercioId) {
+      console.error('No se encontró comercio_id en localStorage')
+      setUsuarios([])
+      return
+    }
+
+    const res = await fetch('/api/comercio/usuarios/listado', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        comercio_id: comercioId,
+      }),
+    })
+
     const data = await res.json()
 
     if (!res.ok || !data.ok) {
@@ -65,7 +82,7 @@ export default function UsuariosPage() {
       return
     }
 
-    setUsuarios(data.usuarios)
+    setUsuarios(data.usuarios || [])
   } catch (error) {
     console.error('Error cargando usuarios:', error)
     setUsuarios([])
