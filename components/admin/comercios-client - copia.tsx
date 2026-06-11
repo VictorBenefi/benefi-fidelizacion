@@ -621,43 +621,39 @@ async function copiarUrl(url: string) {
                       <td className="py-4 pr-4">{comercio.cuit || "-"}</td>
 
                       <td className="py-4 pr-4">
-                        <div className="max-w-[280px] break-words text-sm leading-6 text-blue-700 underline">
+                        <div className="max-w-[320px] break-all text-sm text-slate-700">
                           {buildPortalUrl(comercio) || "-"}
                         </div>
 
-                        <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="mt-2 flex flex-wrap gap-2">
                           <a
                             href={buildPortalUrl(comercio)}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-lg border border-slate-300 px-3 py-2 text-center text-xs font-medium text-slate-700 hover:bg-slate-50"
+                            className="cursor-pointer rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                           >
                             Abrir
                           </a>
-
+                          
                           <button
-                            type="button"
                             onClick={() => copiarUrl(buildPortalUrl(comercio))}
-                            className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                            className="cursor-pointer rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                           >
-                            Copiar
+                            Copiar URL
                           </button>
 
                           <button
-                            type="button"
                             onClick={() => generarQR(buildPortalUrl(comercio))}
-                            className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                            className="cursor-pointer rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                           >
-                            QR
+                            Ver QR
                           </button>
-
-                          <a
+                            <a
                             href={buildComercioLoginUrl(comercio)}
                             target="_blank"
-                            rel="noreferrer"
-                            className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-center text-xs font-medium text-blue-700 hover:bg-blue-100"
+                            className="px-2 py-1 text-xs bg-blue-100 border rounded hover:bg-blue-200 text-center"
                           >
-                            Login
+                            Login comercio
                           </a>
                         </div>
                       </td>
@@ -669,7 +665,8 @@ async function copiarUrl(url: string) {
                             handleCampaignChange(comercio.id, e.target.value)
                           }
                           disabled={savingId === comercio.id}
-                          className="min-w-[320px] rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:bg-slate-100"                        >
+                          className="min-w-[260px] rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500 disabled:bg-slate-100"
+                        >
                           <option value="">Sin campaña asignada</option>
                           {campanias.map((campania) => (
                             <option key={campania.id} value={campania.id}>
@@ -688,7 +685,7 @@ async function copiarUrl(url: string) {
                       <td className="py-4 pr-4">
                         <button
                           onClick={() => handleEdit(comercio)}
-                          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          className="rounded-xl border border-slate-300 px-4 py-2 text-base font-medium text-slate-700 hover:bg-slate-50"
                         >
                           Editar
                         </button>
