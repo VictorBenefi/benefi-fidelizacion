@@ -75,6 +75,8 @@ async function cargarUsuarios() {
     })
 
     const data = await res.json()
+    console.log("COMERCIO ID ENVIADO:", comercioId)
+    console.log("RESPUESTA USUARIOS LISTADO:", data)
 
     if (!res.ok || !data.ok) {
       console.error('Error cargando usuarios:', data?.error)
