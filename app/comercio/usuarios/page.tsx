@@ -56,11 +56,10 @@ async function cargarUsuarios() {
   setLoading(true)
 
   try {
-    const comercioRes = await fetch('/api/comercio/me')
-    const comercioData = await comercioRes.json()
+    const comercioId = localStorage.getItem('comercio_id')
 
-    if (!comercioRes.ok || !comercioData.ok || !comercioData.comercio?.id) {
-      console.error('No se pudo obtener comercio logueado:', comercioData)
+    if (!comercioId) {
+      console.error('No se encontró comercio_id en localStorage')
       setUsuarios([])
       return
     }
@@ -71,7 +70,7 @@ async function cargarUsuarios() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        comercio_id: comercioData.comercio.id,
+        comercio_id: comercioId,
       }),
     })
 
@@ -91,7 +90,6 @@ async function cargarUsuarios() {
     setLoading(false)
   }
 }
-
   async function toggleActivo(id: string, estadoActual: boolean) {
     const { error } = await supabaseClient
       .from("usuarios")
