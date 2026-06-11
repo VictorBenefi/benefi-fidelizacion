@@ -423,7 +423,10 @@ export default function DashboardUsuario() {
         </section>
         {beneficios.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-3">
+            <h3
+              id="beneficios-disponibles"
+              className="text-lg font-semibold text-slate-800 mb-3"
+            >
               🎁 Beneficios disponibles hoy
             </h3>
 
@@ -523,9 +526,12 @@ export default function DashboardUsuario() {
                           onClick={(e) => {
                             e.stopPropagation()
                             marcarLeida(item)
-                            window.location.href = "/terminal"
+                            document.getElementById('beneficios-disponibles')?.scrollIntoView({
+                              behavior: 'smooth',
+                              block: 'start',
+                            })
                           }}
-                        >
+                                                  >
                           Ver beneficio →
                         </button>
                       </div>
