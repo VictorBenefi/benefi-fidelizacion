@@ -613,6 +613,14 @@ const calcularPuntos = () => {
   const canjeActual = Number(puntosCanje || 0)
   const resultadoFinal = puntosCalculados - canjeActual
 
+  function formatearPesos(valor: string) {
+  const numero = valor.replace(/\D/g, "")
+
+  if (!numero) return ""
+
+  return Number(numero).toLocaleString("es-AR")
+}
+
   return (
     <SidebarLayout>
       <div style={{ minHeight: '100vh', padding: 20, fontFamily: 'Arial, sans-serif' }}>
@@ -963,10 +971,17 @@ const calcularPuntos = () => {
                     <div>
                       <label style={labelStyle}>Importe de compra</label>
                     <input
-                      type="number"
+                      type="text"
                       placeholder="Ingresar importe"
-                      value={importeCompra}
-                      onChange={(e) => setImporteCompra(e.target.value)}
+                      value={
+                        importeCompra
+                          ? `$ ${formatearPesos(importeCompra)}`
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const soloNumeros = e.target.value.replace(/\D/g, "")
+                        setImporteCompra(soloNumeros)
+                      }}
                       autoComplete="off"
                       name="importe_compra_unico_123"
                       style={inputStyle}
