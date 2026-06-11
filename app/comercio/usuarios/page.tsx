@@ -56,10 +56,11 @@ async function cargarUsuarios() {
   setLoading(true)
 
   try {
-    const comercioId = localStorage.getItem('comercio_id')
+    const comercioRes = await fetch('/api/comercio/me')
+    const comercioData = await comercioRes.json()
 
-    if (!comercioId) {
-      console.error('No se encontró comercio_id en localStorage')
+    if (!comercioRes.ok || !comercioData.ok || !comercioData.comercio?.id) {
+      console.error('No se pudo obtener comercio logueado:', comercioData)
       setUsuarios([])
       return
     }
@@ -70,7 +71,7 @@ async function cargarUsuarios() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        comercio_id: comercioId,
+        comercio_id: comercioData.comercio.id,
       }),
     })
 

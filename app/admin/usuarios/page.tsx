@@ -56,7 +56,7 @@ const saldoActual = totalPuntos - totalCanjeados
   setLoading(true)
 
   try {
-    const res = await fetch('/api/comercio/usuarios')
+    const res = await fetch('/api/admin/usuarios')
     const data = await res.json()
 
     if (!res.ok || !data.ok) {
