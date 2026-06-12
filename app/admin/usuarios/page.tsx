@@ -55,24 +55,23 @@ const saldoActual = totalPuntos - totalCanjeados
   async function cargarUsuarios() {
   setLoading(true)
 
-  try {
-  const res = await fetch('/api/admin/usuarios')
-  const data = await res.json()
+  try { 
+    const res = await fetch('/api/admin/usuarios') 
+    const data = await res.json()
 
-  if (!res.ok || !data.ok) {
-    console.error('Error cargando usuarios:', data?.error)
-    setUsuarios([])
-    return
+  if (!res.ok || !data.ok) { 
+    console.error('Error cargando usuarios:', data?.error) 
+    setUsuarios([]) 
+    return 
   }
 
-  console.log('USUARIOS RECIBIDOS:', data.usuarios)
-
-  setUsuarios(data.usuarios)
-} catch (error) {
-  console.error('Error cargando usuarios:', error)
-  setUsuarios([])
-} finally {
-  setLoading(false)
+setUsuarios(data.usuarios) 
+  } catch (error) { 
+    console.error('Error cargando usuarios:', error) 
+    setUsuarios([]) 
+  } finally { 
+    setLoading(false) 
+  } 
 }
 
   async function toggleActivo(id: string, estadoActual: boolean) {

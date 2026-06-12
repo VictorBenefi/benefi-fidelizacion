@@ -38,11 +38,29 @@ export async function POST(req: Request) {
       );
     }
 
-    const usuarios = (data || [])
-      .map((row: any) => row.usuarios)
-      .filter(Boolean);
+    const { data: comercioData } = await supabaseAdmin
+    .from("comercios")
+    .select("nombre_fantasia, razon_social")
+    .eq("id", comercio_id)
+    .single();
 
-    return NextResponse.json(usuarios);
+  const nombreComercio =
+    comercioData?.nombre_fantasia ||
+    comercioData?.razon_social ||
+    "Sin comercio";
+
+  const usuarios = (data || [])
+    .map((row: any) => {
+      if (!row.usuarios) return null;
+
+      return {
+        ...row.usuarios,
+        comercio_nombre: nombreComercio,
+      };
+    })
+    .filter(Boolean);
+
+  return NextResponse.json(usuarios);
   } catch (error) {
     console.error("Error listando usuarios del comercio:", error);
     return NextResponse.json(
