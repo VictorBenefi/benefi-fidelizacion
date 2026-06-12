@@ -16,38 +16,49 @@ export async function GET() {
     // 2. Traer relaciones usuario-comercio
     const { data: relaciones, error: relError } = await supabaseAdmin
       .from('usuarios_comercios')
-      .select(`
-        usuario_id,
-        comercios (
-          nombre_fantasia,
-          razon_social
-        )
-      `)
+      .select('usuario_id, comercio_id')
 
     if (relError) {
       return NextResponse.json({ error: relError.message }, { status: 500 })
     }
 
-    // 3. Armar mapa usuario → comercios
-    const mapa: Record<string, string[]> = {}
+    // 3. Traer comercios
+    const { data: comercios, error: comerciosError } = await supabaseAdmin
+      .from('comercios')
+      .select('id, nombre_fantasia, razon_social')
 
-    relaciones?.forEach((rel: any) => {
-      const nombre =
-        rel.comercios?.nombre_fantasia ||
-        rel.comercios?.razon_social ||
+    if (comerciosError) {
+      return NextResponse.json({ error: comerciosError.message }, { status: 500 })
+    }
+
+    // 4. Mapa comercio_id → nombre
+    const mapaComercios: Record<string, string> = {}
+
+    comercios?.forEach((c: any) => {
+      mapaComercios[c.id] =
+        c.nombre_fantasia ||
+        c.razon_social ||
         'Sin nombre'
-
-      if (!mapa[rel.usuario_id]) {
-        mapa[rel.usuario_id] = []
-      }
-
-      mapa[rel.usuario_id].push(nombre)
     })
 
-    // 4. Armar respuesta final
-    const resultado = usuarios.map((u: any) => ({
+    // 5. Mapa usuario_id → comercios
+    const mapaUsuarios: Record<string, string[]> = {}
+
+    relaciones?.forEach((rel: any) => {
+      const nombreComercio =
+        mapaComercios[rel.comercio_id] || 'Sin comercio'
+
+      if (!mapaUsuarios[rel.usuario_id]) {
+        mapaUsuarios[rel.usuario_id] = []
+      }
+
+      mapaUsuarios[rel.usuario_id].push(nombreComercio)
+    })
+
+    // 6. Respuesta final
+    const resultado = (usuarios || []).map((u: any) => ({
       ...u,
-      comercio_nombre: mapa[u.id]?.join(', ') || 'Sin comercio',
+      comercio_nombre: mapaUsuarios[u.id]?.join(', ') || 'Sin comercio',
     }))
 
     return NextResponse.json({ ok: true, usuarios: resultado })
