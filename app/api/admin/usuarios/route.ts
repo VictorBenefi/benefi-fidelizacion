@@ -61,6 +61,11 @@ export async function GET() {
       comercio_nombre: mapaUsuarios[u.id]?.join(', ') || 'Sin comercio',
     }))
 
+    console.log("RELACIONES:", relaciones)
+    console.log("MAPA COMERCIOS:", mapaComercios)
+    console.log("MAPA USUARIOS:", mapaUsuarios)
+    console.log("RESULTADO:", resultado)
+    
     return NextResponse.json({ ok: true, usuarios: resultado })
   } catch (error) {
     console.error(error)
