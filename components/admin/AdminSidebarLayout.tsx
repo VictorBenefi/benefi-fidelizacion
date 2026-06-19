@@ -8,6 +8,7 @@ const menuItems = [
   { label: "Inicio", href: "/admin", description: "Panel general del backoffice" },
   { label: "Campañas", href: "/admin/campanias", description: "Branding, logos y colores" },
   { label: "Comercios", href: "/admin/comercios", description: "Asignación y gestión comercial" },
+  { label: "Solicitudes", href: "/admin/solicitudes", description: "Pruebas gratis pendientes"  },
   { label: "Usuarios", href: "/admin/usuarios", description: "Próximamente" },
   { label: "Promociones", href: "/admin/promociones" },
   { label: "Movimientos", href: "/admin/movimientos", description: "Operaciones y auditoría" },
