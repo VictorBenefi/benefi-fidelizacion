@@ -40,27 +40,43 @@ function DashboardContent() {
   const [loading, setLoading] = useState(false)
   const [autoLoaded, setAutoLoaded] = useState(false)
 
-  useEffect(() => {
-    async function loadComercio() {
-      try {
-        const comercio = await getCurrentComercio()
-        console.log('COMERCIO OBTENIDO', comercio)
-        console.log('SLUG OBTENIDO', (comercio as any)?.slug)
+useEffect(() => {
+  async function loadComercio() {
+    try {
 
-        if (comercio?.id) {
-          setComercioId(comercio.id)
-          setComercioSlug((comercio as any).slug || '')
-        }
-        else {
-          console.error('No se encontró comercio para el usuario logueado')
-        }
-      } catch (error) {
-        console.error('Error obteniendo comercio actual', error)
+      console.log(
+        'LOCALSTORAGE COMERCIO',
+        localStorage.getItem('comercio_id')
+      )
+
+      const comercio = await getCurrentComercio()
+
+      console.log('COMERCIO OBTENIDO', comercio)
+
+      console.log(
+        'SLUG OBTENIDO',
+        (comercio as any)?.slug
+      )
+
+      if (comercio?.id) {
+        setComercioId(comercio.id)
+        setComercioSlug((comercio as any).slug || '')
+      } else {
+        console.error(
+          'No se encontró comercio para el usuario logueado'
+        )
       }
-    }
 
-    loadComercio()
-  }, [])
+    } catch (error) {
+      console.error(
+        'Error obteniendo comercio actual',
+        error
+      )
+    }
+  }
+
+  loadComercio()
+}, [])
 
   const hoyIso = useMemo(() => {
     const d = new Date()

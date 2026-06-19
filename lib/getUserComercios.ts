@@ -46,20 +46,5 @@ if (!res.ok || !json?.comercios) {
   return []
 }
 
-const comercioIdActual =
-  typeof window !== 'undefined'
-    ? localStorage.getItem('comercio_id')
-    : null
-
-if (comercioIdActual) {
-  const comercioActual = json.comercios.find(
-    (comercio: ComercioActivo) => comercio.id === comercioIdActual
-  )
-
-  if (comercioActual) {
-    return [comercioActual]
-  }
-}
-
 return json.comercios
 }
