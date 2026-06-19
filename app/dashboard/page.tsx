@@ -29,9 +29,11 @@ type DashboardData = {
 }
 
 function DashboardContent() {
-  const campaign = usePortalCampaign()
-
   const [comercioId, setComercioId] = useState('')
+  const [comercioSlug, setComercioSlug] = useState('')
+  const campaign = usePortalCampaign(comercioSlug)
+  console.log('SLUG ENVIADO A CAMPAÑA', comercioSlug)
+  console.log('CAMPAÑA CARGADA', campaign)
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [data, setData] = useState<DashboardData | null>(null)
@@ -42,10 +44,14 @@ function DashboardContent() {
     async function loadComercio() {
       try {
         const comercio = await getCurrentComercio()
+        console.log('COMERCIO OBTENIDO', comercio)
+        console.log('SLUG OBTENIDO', (comercio as any)?.slug)
 
         if (comercio?.id) {
           setComercioId(comercio.id)
-        } else {
+          setComercioSlug((comercio as any).slug || '')
+        }
+        else {
           console.error('No se encontró comercio para el usuario logueado')
         }
       } catch (error) {
