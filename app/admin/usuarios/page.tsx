@@ -87,6 +87,7 @@ setUsuarios(data.usuarios)
 
 async function verDetalle(usuario: Usuario) {
   setUsuarioSeleccionado(usuario);
+  console.log('USUARIO DETALLE ADMIN:', usuario)
 
   try {
     const { supabaseClient } = await import("@/lib/supabaseClient");
