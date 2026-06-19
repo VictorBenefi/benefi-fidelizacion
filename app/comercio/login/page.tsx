@@ -46,10 +46,16 @@ function LoginComercioContent() {
         return;
       }
 
+      /* Limpiar valores viejos */
+      localStorage.removeItem("comercio_id");
+      localStorage.removeItem("current_comercio_id");
+
+      /* Guardar comercio activo */
       localStorage.setItem("comercio_id", data.comercio.id);
       localStorage.setItem("current_comercio_id", data.comercio.id);
+
       router.push("/comercio/promociones");
-    } catch (err) {
+          } catch (err) {
       console.error(err);
       setError("Ocurrió un error al iniciar sesión");
     } finally {

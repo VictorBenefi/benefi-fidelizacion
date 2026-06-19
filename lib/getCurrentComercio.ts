@@ -1,10 +1,19 @@
 export function getCurrentComercioIdFromStorage() {
   if (typeof window === "undefined") return null;
 
-  return (
-    localStorage.getItem("comercio_id") ||
-    localStorage.getItem("current_comercio_id")
-  );
+  const comercioId = localStorage.getItem("comercio_id");
+  const currentId = localStorage.getItem("current_comercio_id");
+
+  /* Si ambos existen y son distintos, usar comercio_id */
+  if (comercioId) {
+    if (currentId && currentId !== comercioId) {
+      localStorage.setItem("current_comercio_id", comercioId);
+    }
+
+    return comercioId;
+  }
+
+  return currentId;
 }
 
 export function setCurrentComercioId(comercioId: string) {
