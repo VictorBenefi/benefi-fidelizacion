@@ -47,6 +47,7 @@ function LoginComercioContent() {
       }
 
       localStorage.setItem("comercio_id", data.comercio.id);
+      localStorage.setItem("current_comercio_id", data.comercio.id);
       router.push("/comercio/promociones");
     } catch (err) {
       console.error(err);

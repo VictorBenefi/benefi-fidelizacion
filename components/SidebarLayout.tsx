@@ -112,8 +112,7 @@ export default function SidebarLayout({
           typeof window !== "undefined"
             ? localStorage.getItem("comercio_id")
             : null;
-            console.log("SIDEBAR comercio_id usado:", comercioId);
-
+            
         if (!comercioId) {
           if (mounted) {
             setCampaign(null);
@@ -153,7 +152,7 @@ export default function SidebarLayout({
     return () => {
       mounted = false;
     };
-  }, [pathname]);
+  }, [])
 
   useEffect(() => {
     setMenuOpen(false);

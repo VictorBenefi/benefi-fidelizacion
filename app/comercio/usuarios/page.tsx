@@ -108,32 +108,31 @@ async function cargarUsuarios() {
     }
   }
 
-    async function verDetalle(usuario: Usuario) {
-      setUsuarioSeleccionado(usuario);
+async function verDetalle(usuario: Usuario) {
+  setUsuarioSeleccionado(usuario)
 
-      try {
-        const { supabaseClient } = await import("@/lib/supabaseClient");
+  try {
+    const { supabaseClient } = await import("@/lib/supabaseClient")
+    const comercioId = localStorage.getItem("comercio_id")
 
-        const desde = new Date();
-        desde.setDate(desde.getDate() - 30);
-
-        const { data } = await supabaseClient
-          .from("movimientos_puntos")
-          .select("*")
-          .eq("usuario_id", usuario.id)
-          .gte("created_at", desde.toISOString())
-          .order("created_at", { ascending: false });
-
-        if (data) {
-          setMovimientos(data);
-        } else {
-          setMovimientos([]);
-        }
-      } catch (error) {
-        console.error(error);
-        setMovimientos([]);
-      }
+    if (!comercioId) {
+      setMovimientos([])
+      return
     }
+
+    const { data } = await supabaseClient
+      .from("movimientos_puntos")
+      .select("*")
+      .eq("usuario_id", usuario.id)
+      .eq("comercio_id", comercioId)
+      .order("created_at", { ascending: false })
+
+    setMovimientos(data || [])
+  } catch (error) {
+    console.error(error)
+    setMovimientos([])
+  }
+}
 
   function exportarExcel() {
     if (usuariosFiltrados.length === 0) return;
