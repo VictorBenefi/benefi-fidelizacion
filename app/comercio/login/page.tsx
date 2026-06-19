@@ -18,6 +18,7 @@ function LoginComercioContent() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -98,18 +99,41 @@ function LoginComercioContent() {
           }}
         />
 
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
+        <div
           style={{
-            width: "100%",
-            padding: 10,
+            position: "relative",
             marginBottom: 10,
           }}
-        />
+        >
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{
+              width: "100%",
+              padding: "10px 42px 10px 10px",
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              fontSize: 18,
+            }}
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
 
         {error && (
           <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
