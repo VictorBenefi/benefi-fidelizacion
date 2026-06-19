@@ -42,9 +42,24 @@ export async function getUserComercios(): Promise<ComercioActivo[]> {
 
   console.log('JSON API RESPONSE:', json)
 
-  if (!res.ok || !json?.comercios) {
-    return []
-  }
+if (!res.ok || !json?.comercios) {
+  return []
+}
 
-  return json.comercios
+const comercioIdActual =
+  typeof window !== 'undefined'
+    ? localStorage.getItem('comercio_id')
+    : null
+
+if (comercioIdActual) {
+  const comercioActual = json.comercios.find(
+    (comercio: ComercioActivo) => comercio.id === comercioIdActual
+  )
+
+  if (comercioActual) {
+    return [comercioActual]
+  }
+}
+
+return json.comercios
 }
