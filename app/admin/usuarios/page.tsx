@@ -92,12 +92,14 @@ async function verDetalle(usuario: Usuario) {
   try {
     const { supabaseClient } = await import("@/lib/supabaseClient");
 
-    const { data } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from("movimientos_puntos")
       .select("*")
       .eq("usuario_id", usuario.id)
-      .eq("comercio_id", (usuario as any).comercio_id)
       .order("created_at", { ascending: false });
+
+    console.log("MOVIMIENTOS ENCONTRADOS:", data);
+    console.log("ERROR MOVIMIENTOS:", error);
 
     setMovimientos(data || []);
   } catch (error) {
