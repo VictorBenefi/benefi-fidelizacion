@@ -504,8 +504,8 @@ return (
                                 </div>
                             )}
 
-                            <div className="flex flex-col gap-1">
-                              <label className="text-xs font-semibold text-slate-700">
+                            <div className="rounded-lg border bg-white p-3">
+                              <label className="mb-2 block text-xs font-semibold text-slate-700">
                                 Fecha de inicio
                               </label>
 
@@ -515,12 +515,12 @@ return (
                                 onChange={(e) =>
                                   actualizarPromocion(index, 'fecha_inicio', e.target.value)
                                 }
-                                className="h-[46px] w-full rounded-lg border bg-white px-3 text-sm"
+                                className="block h-10 w-full border-0 bg-transparent text-sm outline-none"
                               />
                             </div>
 
-                            <div className="flex flex-col gap-1">
-                              <label className="text-xs font-semibold text-slate-700">
+                            <div className="rounded-lg border bg-white p-3">
+                              <label className="mb-2 block text-xs font-semibold text-slate-700">
                                 Fecha de finalización
                               </label>
 
@@ -530,7 +530,7 @@ return (
                                 onChange={(e) =>
                                   actualizarPromocion(index, 'fecha_fin', e.target.value)
                                 }
-                                className="h-[46px] w-full rounded-lg border bg-white px-3 text-sm"
+                                className="block h-10 w-full border-0 bg-transparent text-sm outline-none"
                               />
                             </div>
                             </div>
