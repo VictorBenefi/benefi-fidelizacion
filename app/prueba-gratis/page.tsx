@@ -8,6 +8,7 @@ import Image from 'next/image'
 
 export default function PruebaGratisPage() {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [logo, setLogo] = useState<File | null>(null)
   const [promociones, setPromociones] = useState<any[]>([])
@@ -31,9 +32,28 @@ export default function PruebaGratisPage() {
   })
     
   const guardar = async () => {
-    setLoading(true)
+  if (
+    !form.nombre_fantasia.trim() ||
+    !form.razon_social.trim() ||
+    !form.cuit.trim() ||
+    !form.rubro.trim() ||
+    !form.direccion.trim() ||
+    !form.ciudad.trim() ||
+    !form.provincia.trim() ||
+    !form.responsable_nombre.trim() ||
+    !form.email.trim() ||
+    !form.telefono.trim() ||
+    !form.whatsapp.trim() ||
+    !logo
+  ) {
+    setError('Por favor completá todos los datos obligatorios antes de enviar la solicitud.')
+    return
+  }
+  setError('')
 
-    try {
+  setLoading(true)
+
+  try {
       let logo_url = ''
 
 if (logo) {
@@ -221,6 +241,7 @@ return (
       <div className="grid gap-4 md:grid-cols-2">
         <input
           placeholder="Nombre de fantasía"
+          required
           className="rounded-lg border p-3"
           value={form.nombre_fantasia}
           onChange={(e) =>
@@ -281,6 +302,7 @@ return (
 
         <input
           placeholder="Email"
+          required
           className="rounded-lg border p-3"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -288,6 +310,7 @@ return (
 
         <input
           placeholder="Teléfono"
+          required
           className="rounded-lg border p-3"
           value={form.telefono}
           onChange={(e) => setForm({ ...form, telefono: e.target.value })}
@@ -295,6 +318,7 @@ return (
 
         <input
           placeholder="WhatsApp"
+          required
           className="rounded-lg border p-3"
           value={form.whatsapp}
           onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
@@ -311,6 +335,7 @@ return (
             id="logo"
             type="file"
             accept="image/png"
+            required
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0] || null
@@ -554,6 +579,12 @@ return (
             </div>
 
         </div>
+
+        {error && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+            ⚠️ Antes de comenzar tu prueba gratuita, completá todos los campos obligatorios y cargá el logo de tu comercio.
+          </div>
+        )}
 
       <button
         onClick={guardar}
