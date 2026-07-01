@@ -504,14 +504,8 @@ return (
                                 </div>
                             )}
 
-                            <div className="space-y-1">
-                              <label
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: 600,
-                                  color: "#374151",
-                                }}
-                              >
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-semibold text-slate-700">
                                 Fecha de inicio
                               </label>
 
@@ -519,20 +513,14 @@ return (
                                 type="date"
                                 value={promo.fecha_inicio}
                                 onChange={(e) =>
-                                  actualizarPromocion(index, "fecha_inicio", e.target.value)
+                                  actualizarPromocion(index, 'fecha_inicio', e.target.value)
                                 }
-                                className="..."
+                                className="h-[46px] w-full rounded-lg border bg-white px-3 text-sm"
                               />
                             </div>
 
-                            <div className="space-y-1">
-                              <label
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: 600,
-                                  color: "#374151",
-                                }}
-                              >
+                            <div className="flex flex-col gap-1">
+                              <label className="text-xs font-semibold text-slate-700">
                                 Fecha de finalización
                               </label>
 
@@ -540,9 +528,9 @@ return (
                                 type="date"
                                 value={promo.fecha_fin}
                                 onChange={(e) =>
-                                  actualizarPromocion(index, "fecha_fin", e.target.value)
+                                  actualizarPromocion(index, 'fecha_fin', e.target.value)
                                 }
-                                className="..."
+                                className="h-[46px] w-full rounded-lg border bg-white px-3 text-sm"
                               />
                             </div>
                             </div>
