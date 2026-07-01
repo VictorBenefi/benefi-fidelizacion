@@ -80,6 +80,15 @@ if (logo) {
         return
       }
 
+      ;(window as any).dataLayer = (window as any).dataLayer || []
+
+      ;(window as any).dataLayer.push({
+        event: 'prueba_gratis_enviada',
+        comercio: form.nombre_fantasia,
+        rubro: form.rubro,
+        provincia: form.provincia,
+      })
+
       setSuccess(true)
 
       setForm({
@@ -495,27 +504,47 @@ return (
                                 </div>
                             )}
 
-                            <input
-                                type="date"
-                                className="cursor-pointer rounded-lg border p-3"
-                                value={promo.fecha_inicio}
-                                onChange={(e) => {
-                                const nuevas = [...promociones]
-                                nuevas[index].fecha_inicio = e.target.value
-                                setPromociones(nuevas)
+                            <div className="space-y-1">
+                              <label
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  color: "#374151",
                                 }}
-                            />
+                              >
+                                Fecha de inicio
+                              </label>
 
-                            <input
+                              <input
                                 type="date"
-                                className="cursor-pointer rounded-lg border p-3"
-                                value={promo.fecha_fin}
-                                onChange={(e) => {
-                                const nuevas = [...promociones]
-                                nuevas[index].fecha_fin = e.target.value
-                                setPromociones(nuevas)
+                                value={promo.fecha_inicio}
+                                onChange={(e) =>
+                                  actualizarPromocion(index, "fecha_inicio", e.target.value)
+                                }
+                                className="..."
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  color: "#374151",
                                 }}
-                            />
+                              >
+                                Fecha de finalización
+                              </label>
+
+                              <input
+                                type="date"
+                                value={promo.fecha_fin}
+                                onChange={(e) =>
+                                  actualizarPromocion(index, "fecha_fin", e.target.value)
+                                }
+                                className="..."
+                              />
+                            </div>
                             </div>
 
                             <textarea
