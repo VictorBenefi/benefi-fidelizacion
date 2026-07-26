@@ -354,206 +354,269 @@ async function copiarUrl(url: string) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          {mostrarFormulario && (
-          <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-6 py-5">
-              <h2 className="text-2xl font-semibold text-slate-900">
-                {editingId ? "Editar comercio" : "Nuevo comercio"}
-              </h2>
-            </div>
-
-            <div className="space-y-6 p-6">
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Nombre fantasía
-                  </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.nombre_fantasia}
-                    onChange={(e) => setField("nombre_fantasia", e.target.value)}
-                    placeholder="Ej: Kiosco Centro"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Razón social
-                  </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.razon_social}
-                    onChange={(e) => setField("razon_social", e.target.value)}
-                    placeholder="Ej: Kiosco Centro SRL"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Email de acceso
-                  </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.email}
-                    onChange={(e) => setField("email", e.target.value)}
-                    placeholder="Ej: comercio@email.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Contraseña inicial
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.password}
-                    onChange={(e) => setField("password", e.target.value)}
-                    placeholder="Ej: comercio123"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Teléfono
-                  </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.telefono}
-                    onChange={(e) => setField("telefono", e.target.value)}
-                    placeholder="Ej: 387xxxxxxx"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    CUIT
-                  </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.cuit}
-                    onChange={(e) => setField("cuit", e.target.value)}
-                    placeholder="Ej: 20-12345678-9"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Slug
-                  </label>
-                  <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.slug}
-                    onChange={(e) => setField("slug", e.target.value)}
-                    placeholder="Ej: comercio-test"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-base font-medium text-slate-700">
-                    Campaña asignada
-                  </label>
-                  <select
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
-                    value={form.campaign_id}
-                    onChange={(e) => setField("campaign_id", e.target.value)}
-                  >
-                    <option value="">Sin campaña asignada</option>
-                    {campanias.map((campania) => (
-                      <option key={campania.id} value={campania.id}>
-                        {campania.nombre_campania} ({campania.slug})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-end">
-                  <label className="inline-flex items-center gap-3 rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={!!form.activo}
-                      onChange={(e) => setField("activo", e.target.checked)}
-                    />
-                    Comercio activo
-                  </label>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  URL de acceso del comercio
-                </div>
-                <div className="mt-2 text-base font-medium text-slate-900">
-                  /comercio/login
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleSubmit}
-                  disabled={savingForm}
-                  className="rounded-xl bg-slate-900 px-5 py-3 text-base font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-                >
-                  {savingForm
-                    ? "Guardando..."
-                    : editingId
-                    ? "Actualizar comercio"
-                    : "Crear comercio"}
-                </button>
-
-                {editingId && (
-                  <button
-                    onClick={resetForm}
-                    disabled={savingForm}
-                    className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
-                  >
-                    Cancelar
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-          )}
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-base font-medium text-slate-500">Comercios</div>
-              <div className="mt-2 text-4xl font-bold text-slate-900">
-                {comercios.length}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-base font-medium text-slate-500">
-                Campañas activas
-              </div>
-              <div className="mt-2 text-4xl font-bold text-slate-900">
-                {campaniasActivas}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-base font-medium text-slate-500">
-                Comercios con campaña asignada
-              </div>
-              <div className="mt-2 text-4xl font-bold text-slate-900">
-                {campaniasAsignadas}
-              </div>
-            </div>
-          </div>
-          
+        {/* MÉTRICAS */}
+<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Comercios
         </div>
 
+        <div className="mt-3 text-5xl font-black text-[#C1121F]">
+          {comercios.length}
+        </div>
+
+        <div className="mt-2 text-sm text-slate-500">
+          Comercios registrados
+        </div>
+      </div>
+
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-3xl">
+        🏪
+      </div>
+    </div>
+  </div>
+
+  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Campañas activas
+        </div>
+
+        <div className="mt-3 text-5xl font-black text-[#C1121F]">
+          {campaniasActivas}
+        </div>
+
+        <div className="mt-2 text-sm text-slate-500">
+          Campañas disponibles
+        </div>
+      </div>
+
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-3xl">
+        🎁
+      </div>
+    </div>
+  </div>
+
+  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Con campaña asignada
+        </div>
+
+        <div className="mt-3 text-5xl font-black text-[#C1121F]">
+          {campaniasAsignadas}
+        </div>
+
+        <div className="mt-2 text-sm text-slate-500">
+          Comercios configurados
+        </div>
+      </div>
+
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 text-3xl">
+        ✅
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* FORMULARIO ALTA / EDICIÓN */}
+{mostrarFormulario && (
+  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="border-b border-slate-200 px-6 py-5">
+      <h2 className="text-2xl font-semibold text-slate-900">
+        {editingId ? "Editar comercio" : "Nuevo comercio"}
+      </h2>
+
+      <p className="mt-1 text-sm text-slate-500">
+        {editingId
+          ? "Modificá los datos y accesos del comercio."
+          : "Completá los datos para incorporar un nuevo comercio."}
+      </p>
+    </div>
+
+    <div className="space-y-6 p-6">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Nombre fantasía
+          </label>
+          <input
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.nombre_fantasia}
+            onChange={(e) =>
+              setField("nombre_fantasia", e.target.value)
+            }
+            placeholder="Ej: Kiosco Centro"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Razón social
+          </label>
+          <input
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.razon_social}
+            onChange={(e) =>
+              setField("razon_social", e.target.value)
+            }
+            placeholder="Ej: Kiosco Centro SRL"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Email de acceso
+          </label>
+          <input
+            type="email"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.email}
+            onChange={(e) => setField("email", e.target.value)}
+            placeholder="Ej: comercio@email.com"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Contraseña inicial
+          </label>
+          <input
+            type="text"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.password}
+            onChange={(e) => setField("password", e.target.value)}
+            placeholder="Ej: comercio123"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Teléfono
+          </label>
+          <input
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.telefono}
+            onChange={(e) => setField("telefono", e.target.value)}
+            placeholder="Ej: 387xxxxxxx"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            CUIT
+          </label>
+          <input
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.cuit}
+            onChange={(e) => setField("cuit", e.target.value)}
+            placeholder="Ej: 20-12345678-9"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Slug
+          </label>
+          <input
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.slug}
+            onChange={(e) => setField("slug", e.target.value)}
+            placeholder="Ej: comercio-test"
+          />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-base font-medium text-slate-700">
+            Campaña asignada
+          </label>
+          <select
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            value={form.campaign_id}
+            onChange={(e) =>
+              setField("campaign_id", e.target.value)
+            }
+          >
+            <option value="">Sin campaña asignada</option>
+
+            {campanias.map((campania) => (
+              <option key={campania.id} value={campania.id}>
+                {campania.nombre_campania} ({campania.slug})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-end">
+          <label className="inline-flex w-full cursor-pointer items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-700">
+            <input
+              type="checkbox"
+              checked={!!form.activo}
+              onChange={(e) =>
+                setField("activo", e.target.checked)
+              }
+            />
+            Comercio activo
+          </label>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+        <div className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+          URL de acceso del comercio
+        </div>
+
+        <div className="mt-2 font-medium text-slate-900">
+          https://fidelizacion.benefi.com.ar/comercio/login
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={savingForm}
+          className="rounded-xl bg-slate-950 px-5 py-3 text-base font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+        >
+          {savingForm
+            ? "Guardando..."
+            : editingId
+              ? "Actualizar comercio"
+              : "Crear comercio"}
+        </button>
+
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            disabled={savingForm}
+            className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-base font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+        
+
+        {/* BUSCADOR */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <label className="mb-2 block text-base font-medium text-slate-700">
             Buscar comercio
           </label>
+
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nombre, email, CUIT, slug o URL..."
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
 
@@ -735,7 +798,6 @@ async function copiarUrl(url: string) {
   </div>
 )}
 
-)
     </div>
   );
 }

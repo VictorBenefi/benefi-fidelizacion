@@ -378,159 +378,58 @@ export default function UsuariosPage() {
 
   if (loadingBranding) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#f8fafc',
-          color: '#0f172a',
-          fontFamily: 'Arial, sans-serif',
-        }}
-      >
-        Cargando portal...
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 font-sans text-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
+          Cargando portal...
+        </div>
       </div>
     )
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        padding: 24,
-        fontFamily: 'Arial, sans-serif',
-        background: branding.colorFondo,
-      }}
+    <main
+      className="min-h-screen px-4 py-6 sm:px-6 sm:py-10"
+      style={{ background: branding.colorFondo }}
     >
-      <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: 22,
-            alignItems: 'stretch',
-          }}
-        >
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 28,
-              padding: 36,
-              boxShadow: '0 18px 48px rgba(15, 23, 42, 0.08)',
-              border: '1px solid #edf2f7',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: 'auto',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '6px 12px',
-                  borderRadius: 999,
-                  background: '#eff6ff',
-                  color: branding.colorPrimario,
-                  fontWeight: 700,
-                  fontSize: 12,
-                  marginBottom: 18,
-                }}
-              >
-                Portal de usuarios
-              </div>
-
-              {branding.logo ? (
-                <img
-                  src={branding.logo}
-                  alt={branding.titulo}
-                  style={{
-                    maxWidth: 280,
-                    maxHeight: 100,
-                    objectFit: 'contain',
-                    marginBottom: 24,
-                    display: 'block',
-                  }}
-                />
-              ) : (
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 15,
-                    color: branding.colorPrimario,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.4px',
-                    marginBottom: 20,
-                  }}
-                >
-                  {branding.titulo}
-                </p>
-              )}
-
-              <h1
-                style={{
-                  margin: 0,
-                  marginBottom: 10,
-                  fontSize: 44,
-                  lineHeight: '48px',
-                  color: '#0f172a',
-                }}
-              >
-                {branding.titulo}
-              </h1>
-
-              <p
-                style={{
-                  margin: 0,
-                  color: '#64748b',
-                  fontSize: 16,
-                  lineHeight: '25px',
-                  maxWidth: 560,
-                }}
-              >
-                {branding.descripcion}
-              </p>
-            </div>
-
+      <div className="mx-auto w-full max-w-xl">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
+          <div className="border-b border-slate-100 px-5 pb-6 pt-7 text-center sm:px-8 sm:pt-9">
             <div
+              className="mx-auto mb-4 inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                gap: 14,
-                marginTop: 28,
+                background: `${branding.colorPrimario}12`,
+                color: branding.colorPrimario,
               }}
             >
-              <BenefitBox title="Tus puntos" text="Consultá tu saldo actualizado en tiempo real." />
-              <BenefitBox title="Tus movimientos" text="Revisá cargas, canjes y operaciones recientes." />
-              <BenefitBox title="Tu comercio" text="Viví una experiencia con el branding del programa." />
+              Programa de Beneficios
             </div>
+
+            {branding.logo ? (
+              <img
+                src={branding.logo}
+                alt={branding.titulo}
+                className="mx-auto mb-4 max-h-24 w-auto max-w-[220px] object-contain"
+              />
+            ) : (
+              <div
+                className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-black text-white"
+                style={{ background: branding.colorBoton }}
+              >
+                {branding.titulo.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+
+            <h1 className="text-2xl font-black leading-tight text-slate-950 sm:text-3xl">
+              {branding.titulo}
+            </h1>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 sm:text-base">
+              {branding.descripcion}
+            </p>
           </div>
 
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: 28,
-              padding: 30,
-              boxShadow: '0 18px 48px rgba(15, 23, 42, 0.08)',
-              border: '1px solid #edf2f7',
-              minHeight: 'auto',
-            }}
-          >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 10,
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: 16,
-                padding: 8,
-                marginBottom: 22,
-              }}
-            >
+          <div className="p-5 sm:p-8">
+            <div className="mb-6 grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
               <TabButton
                 active={tab === 'login'}
                 label="Ingresar"
@@ -554,41 +453,44 @@ export default function UsuariosPage() {
 
             {tab === 'login' && (
               <div>
-                <div style={{ marginBottom: 22 }}>
-                  <h2 style={{ margin: 0, marginBottom: 8, fontSize: 32, color: '#0f172a' }}>
-                    Ingresar
-                  </h2>
-                  <p style={{ margin: 0, color: '#64748b', fontSize: 15, lineHeight: '22px' }}>
-                    Accedé con tu email y contraseña para ver tus puntos y movimientos.
+                <div className="mb-5">
+                  
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Ingresá con tu email y contraseña para consultar tus puntos y movimientos.
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="flex flex-col gap-4">
                   <div>
-                    <label style={labelStyle}>Email</label>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Email
+                    </label>
                     <input
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="tuemail@correo.com"
-                      style={inputStyle}
+                      className={inputClassName}
                     />
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Contraseña</label>
-                    <div style={{ position: 'relative' }}>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Contraseña
+                    </label>
+                    <div className="relative">
                       <input
                         type={showLoginPassword ? 'text' : 'password'}
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         placeholder="Ingresá tu contraseña"
-                        style={{ ...inputStyle, paddingRight: 48 }}
+                        className={`${inputClassName} pr-12`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        style={eyeButtonStyle}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        aria-label={showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
                         {showLoginPassword ? '🙈' : '👁️'}
                       </button>
@@ -596,14 +498,11 @@ export default function UsuariosPage() {
                   </div>
 
                   <button
+                    type="button"
                     onClick={handleLogin}
                     disabled={loading}
-                    style={{
-                      ...primaryButtonStyle(branding.colorBoton),
-                      marginTop: 6,
-                      opacity: loading ? 0.7 : 1,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                    }}
+                    className="mt-1 h-12 w-full rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{ background: branding.colorBoton }}
                   >
                     {loading ? 'Ingresando...' : 'Ingresar'}
                   </button>
@@ -617,16 +516,7 @@ export default function UsuariosPage() {
                       setRecoverConfirmPassword('')
                       setTab('recover')
                     }}
-                    style={{
-                      alignSelf: 'center',
-                      marginTop: 10,
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#2563eb',
-                      fontSize: 13,
-                      textDecoration: 'underline',
-                      cursor: 'pointer',
-                    }}
+                    className="mx-auto mt-1 text-sm font-semibold text-blue-600 underline underline-offset-4"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
@@ -636,41 +526,46 @@ export default function UsuariosPage() {
 
             {tab === 'recover' && (
               <div>
-                <div style={{ marginBottom: 22 }}>
-                  <h2 style={{ margin: 0, marginBottom: 8, fontSize: 32, color: '#0f172a' }}>
+                <div className="mb-5">
+                  <h2 className="text-2xl font-black text-slate-950">
                     Recuperar contraseña
                   </h2>
-                  <p style={{ margin: 0, color: '#64748b', fontSize: 15, lineHeight: '22px' }}>
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
                     Ingresá tu email y definí una nueva contraseña.
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="flex flex-col gap-4">
                   <div>
-                    <label style={labelStyle}>Email</label>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Email
+                    </label>
                     <input
                       type="email"
                       value={recoverEmail}
                       onChange={(e) => setRecoverEmail(e.target.value)}
                       placeholder="tuemail@correo.com"
-                      style={inputStyle}
+                      className={inputClassName}
                     />
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Nueva contraseña</label>
-                    <div style={{ position: 'relative' }}>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Nueva contraseña
+                    </label>
+                    <div className="relative">
                       <input
                         type={showRecoverPassword ? 'text' : 'password'}
                         value={recoverPassword}
                         onChange={(e) => setRecoverPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
-                        style={{ ...inputStyle, paddingRight: 48 }}
+                        className={`${inputClassName} pr-12`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowRecoverPassword(!showRecoverPassword)}
-                        style={eyeButtonStyle}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        aria-label={showRecoverPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                       >
                         {showRecoverPassword ? '🙈' : '👁️'}
                       </button>
@@ -678,19 +573,28 @@ export default function UsuariosPage() {
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Confirmar contraseña</label>
-                    <div style={{ position: 'relative' }}>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Confirmar contraseña
+                    </label>
+                    <div className="relative">
                       <input
                         type={showRecoverConfirmPassword ? 'text' : 'password'}
                         value={recoverConfirmPassword}
                         onChange={(e) => setRecoverConfirmPassword(e.target.value)}
                         placeholder="Repetí la nueva contraseña"
-                        style={{ ...inputStyle, paddingRight: 48 }}
+                        className={`${inputClassName} pr-12`}
                       />
                       <button
                         type="button"
-                        onClick={() => setShowRecoverConfirmPassword(!showRecoverConfirmPassword)}
-                        style={eyeButtonStyle}
+                        onClick={() =>
+                          setShowRecoverConfirmPassword(!showRecoverConfirmPassword)
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        aria-label={
+                          showRecoverConfirmPassword
+                            ? 'Ocultar contraseña'
+                            : 'Mostrar contraseña'
+                        }
                       >
                         {showRecoverConfirmPassword ? '🙈' : '👁️'}
                       </button>
@@ -701,12 +605,8 @@ export default function UsuariosPage() {
                     type="button"
                     onClick={handleRecoverPassword}
                     disabled={loading}
-                    style={{
-                      ...primaryButtonStyle(branding.colorBoton),
-                      marginTop: 6,
-                      opacity: loading ? 0.7 : 1,
-                      cursor: loading ? 'not-allowed' : 'pointer',
-                    }}
+                    className="mt-1 h-12 w-full rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{ background: branding.colorBoton }}
                   >
                     {loading ? 'Actualizando...' : 'Actualizar contraseña'}
                   </button>
@@ -717,18 +617,9 @@ export default function UsuariosPage() {
                       limpiarMensaje()
                       setTab('login')
                     }}
-                    style={{
-                      alignSelf: 'center',
-                      marginTop: 8,
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#2563eb',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                    }}
+                    className="mx-auto mt-1 text-sm font-semibold text-blue-600 underline underline-offset-4"
                   >
-                    Volver al login
+                    Volver al ingreso
                   </button>
                 </div>
               </div>
@@ -736,80 +627,88 @@ export default function UsuariosPage() {
 
             {tab === 'register' && (
               <div>
-                <div style={{ marginBottom: 22 }}>
-                  <h2 style={{ margin: 0, marginBottom: 8, fontSize: 32, color: '#0f172a' }}>
+                <div className="mb-5">
+                  <h2 className="text-2xl font-black text-slate-950">
                     Crear cuenta
                   </h2>
-                  <p style={{ margin: 0, color: '#64748b', fontSize: 15, lineHeight: '22px' }}>
-                    Registrate para poder consultar tus puntos y movimientos dentro del programa.
+                  <p className="mt-1 text-sm leading-6 text-slate-500">
+                    Registrate para consultar tus puntos, canjes y movimientos.
                   </p>
                 </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                    gap: 16,
-                  }}
-                >
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={labelStyle}>Nombre y apellido</label>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Nombre y apellido
+                    </label>
                     <input
                       type="text"
                       value={nombreCompleto}
                       onChange={(e) => setNombreCompleto(e.target.value)}
                       placeholder="Juan Pérez"
-                      style={inputStyle}
+                      className={inputClassName}
                     />
                   </div>
 
                   <div>
-                    <label style={labelStyle}>DNI</label>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      DNI
+                    </label>
                     <input
                       type="text"
+                      inputMode="numeric"
                       value={dni}
                       onChange={(e) => setDni(e.target.value)}
                       placeholder="12345678"
-                      style={inputStyle}
+                      className={inputClassName}
                     />
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Teléfono</label>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Teléfono
+                    </label>
                     <input
-                      type="text"
+                      type="tel"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
                       placeholder="3870000000"
-                      style={inputStyle}
+                      className={inputClassName}
                     />
                   </div>
 
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={labelStyle}>Email</label>
+                  <div className="sm:col-span-2">
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Email
+                    </label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tuemail@correo.com"
-                      style={inputStyle}
+                      className={inputClassName}
                     />
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Contraseña</label>
-                    <div style={{ position: 'relative' }}>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Contraseña
+                    </label>
+                    <div className="relative">
                       <input
                         type={showRegisterPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
-                        style={{ ...inputStyle, paddingRight: 48 }}
+                        className={`${inputClassName} pr-12`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                        style={eyeButtonStyle}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        aria-label={
+                          showRegisterPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                        }
                       >
                         {showRegisterPassword ? '🙈' : '👁️'}
                       </button>
@@ -817,35 +716,41 @@ export default function UsuariosPage() {
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Confirmar contraseña</label>
-                    <div style={{ position: 'relative' }}>
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
+                      Confirmar contraseña
+                    </label>
+                    <div className="relative">
                       <input
                         type={showRegisterConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Repetí la contraseña"
-                        style={{ ...inputStyle, paddingRight: 48 }}
+                        className={`${inputClassName} pr-12`}
                       />
                       <button
                         type="button"
-                        onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
-                        style={eyeButtonStyle}
+                        onClick={() =>
+                          setShowRegisterConfirmPassword(!showRegisterConfirmPassword)
+                        }
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        aria-label={
+                          showRegisterConfirmPassword
+                            ? 'Ocultar contraseña'
+                            : 'Mostrar contraseña'
+                        }
                       >
                         {showRegisterConfirmPassword ? '🙈' : '👁️'}
                       </button>
                     </div>
                   </div>
 
-                  <div style={{ gridColumn: '1 / -1' }}>
+                  <div className="sm:col-span-2">
                     <button
+                      type="button"
                       onClick={handleRegister}
                       disabled={loading}
-                      style={{
-                        ...primaryButtonStyle(branding.colorBoton),
-                        marginTop: 4,
-                        opacity: loading ? 0.7 : 1,
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                      }}
+                      className="mt-1 h-12 w-full rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                      style={{ background: branding.colorBoton }}
                     >
                       {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                     </button>
@@ -856,62 +761,23 @@ export default function UsuariosPage() {
 
             {mensaje && (
               <div
-                style={{
-                  marginTop: 20,
-                  padding: '14px 16px',
-                  borderRadius: 14,
-                  fontWeight: 700,
-                  background: mensajeTipo === 'ok' ? '#ecfdf5' : '#fef2f2',
-                  color: mensajeTipo === 'ok' ? '#065f46' : '#991b1b',
-                  border: mensajeTipo === 'ok' ? '1px solid #a7f3d0' : '1px solid #fecaca',
-                }}
+                className={`mt-5 rounded-2xl border px-4 py-3 text-sm font-bold ${
+                  mensajeTipo === 'ok'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-red-200 bg-red-50 text-red-700'
+                }`}
               >
                 {mensaje}
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+        </section>
 
-function BenefitBox({
-  title,
-  text,
-}: {
-  title: string
-  text: string
-}) {
-  return (
-    <div
-      style={{
-        background: '#f8fafc',
-        border: '1px solid #e2e8f0',
-        borderRadius: 18,
-        padding: 18,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 15,
-          fontWeight: 800,
-          color: '#0f172a',
-          marginBottom: 8,
-        }}
-      >
-        {title}
+        <p className="mt-5 text-center text-xs text-slate-500">
+          Programa de beneficios administrado por BENEFI
+        </p>
       </div>
-      <div
-        style={{
-          fontSize: 14,
-          color: '#64748b',
-          lineHeight: '21px',
-        }}
-      >
-        {text}
-      </div>
-    </div>
+    </main>
   )
 }
 
@@ -930,15 +796,11 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
+      className="h-11 rounded-xl text-sm font-extrabold transition"
       style={{
-        height: 48,
-        borderRadius: 12,
-        border: 'none',
         background: active ? color : 'transparent',
         color: active ? '#ffffff' : '#334155',
-        fontWeight: 800,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
+        boxShadow: active ? '0 8px 18px rgba(15, 23, 42, 0.12)' : 'none',
       }}
     >
       {label}
@@ -946,50 +808,8 @@ function TabButton({
   )
 }
 
-const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: 13,
-  fontWeight: 700,
-  color: '#334155',
-  marginBottom: 6,
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  height: 48,
-  borderRadius: 14,
-  border: '1px solid #d1d5db',
-  padding: '0 14px',
-  background: '#fff',
-  fontSize: 15,
-  boxSizing: 'border-box',
-}
-
-const eyeButtonStyle: React.CSSProperties = {
-  position: 'absolute',
-  right: 10,
-  top: '50%',
-  transform: 'translateY(-50%)',
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  fontSize: 16,
-  padding: 4,
-}
-
-function primaryButtonStyle(color: string): React.CSSProperties {
-  return {
-    width: '100%',
-    height: 50,
-    borderRadius: 14,
-    border: 'none',
-    background: color,
-    color: '#ffffff',
-    fontWeight: 800,
-    fontSize: 15,
-    boxShadow: '0 12px 24px rgba(15, 23, 42, 0.12)',
-  }
-}
+const inputClassName =
+  'h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-[15px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
 
 function esColorClaro(color?: string) {
   if (!color || typeof color !== 'string') return true
