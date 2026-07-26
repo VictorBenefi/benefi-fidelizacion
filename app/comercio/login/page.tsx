@@ -199,4 +199,5 @@ function LoginComercioContent() {
       </button>
     </form>
   </div>
-)
+  );
+}
