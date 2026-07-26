@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   return (
@@ -21,6 +22,7 @@ function LoginComercioContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -65,95 +67,136 @@ function LoginComercioContent() {
   }
 
   return (
-    <div
+  <div
+    style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#f5f7fb',
+      padding: 20,
+    }}
+  >
+    <form
+      onSubmit={handleLogin}
       style={{
-        height: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#f5f7fb",
+        width: '100%',
+        maxWidth: 360,
+        padding: 30,
+        borderRadius: 12,
+        background: '#fff',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
       }}
     >
-      <form
-        onSubmit={handleLogin}
+      <h2
         style={{
-          width: 360,
-          padding: 30,
-          borderRadius: 12,
-          background: "#fff",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+          marginBottom: 20,
+          fontSize: 22,
+          fontWeight: 700,
+          color: '#0f172a',
         }}
       >
-        <h2 style={{ marginBottom: 20 }}>Login Comercio</h2>
+        Login Comercio
+      </h2>
 
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        style={{
+          width: '100%',
+          padding: 12,
+          marginBottom: 12,
+          border: '1px solid #cbd5e1',
+          borderRadius: 8,
+          outline: 'none',
+          fontSize: 14,
+        }}
+      />
+
+      <div
+        style={{
+          position: 'relative',
+          marginBottom: 12,
+        }}
+      >
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type={showPassword ? 'text' : 'password'}
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
           style={{
-            width: "100%",
-            padding: 10,
-            marginBottom: 10,
+            width: '100%',
+            padding: '12px 44px 12px 12px',
+            border: '1px solid #cbd5e1',
+            borderRadius: 8,
+            outline: 'none',
+            fontSize: 14,
           }}
         />
 
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          aria-label={
+            showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+          }
+          title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          style={{
+            position: 'absolute',
+            right: 12,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            border: 'none',
+            background: 'transparent',
+            color: '#64748b',
+            cursor: 'pointer',
+          }}
+        >
+          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+      </div>
+
+      {error && (
         <div
           style={{
-            position: "relative",
-            marginBottom: 10,
+            marginBottom: 12,
+            padding: 10,
+            borderRadius: 8,
+            background: '#fef2f2',
+            color: '#b91c1c',
+            fontSize: 14,
           }}
         >
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{
-              width: "100%",
-              padding: "10px 42px 10px 10px",
-            }}
-          />
-
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 18,
-            }}
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </button>
+          {error}
         </div>
+      )}
 
-        {error && (
-          <div style={{ color: "red", marginBottom: 10 }}>{error}</div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: 12,
-            background: "#1e3a8a",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-          }}
-        >
-          {loading ? "Ingresando..." : "Ingresar"}
-        </button>
-      </form>
-    </div>
-  );
-}
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          width: '100%',
+          padding: 12,
+          background: loading ? '#94a3b8' : '#1e3a8a',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 8,
+          cursor: loading ? 'not-allowed' : 'pointer',
+          fontSize: 14,
+          fontWeight: 600,
+          transition: 'background 0.2s ease',
+        }}
+      >
+        {loading ? 'Ingresando...' : 'Ingresar'}
+      </button>
+    </form>
+  </div>
+)
