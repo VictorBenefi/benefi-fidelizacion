@@ -101,6 +101,103 @@ body.promociones_iniciales
           category: 'Solicitud prueba gratis',
         }),
       })
+
+      await fetch('https://send.api.mailtrap.io/api/send', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.MAILTRAP_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: {
+            email: process.env.MAILTRAP_FROM_EMAIL,
+            name: 'BENEFI',
+          },
+
+          to: [
+            {
+              email: process.env.NOTIFICACION_SOLICITUD_EMAIL,
+            },
+          ],
+
+          subject: `🚀 Nuevo comercio interesado: ${body.nombre_fantasia}`,
+
+          html: `
+            <div style="font-family:Arial,sans-serif;padding:30px;color:#0f172a;max-width:700px">
+
+              <h2 style="margin-bottom:20px;">
+                Nuevo comercio interesado en BENEFI
+              </h2>
+
+              <table style="width:100%;border-collapse:collapse">
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Comercio</td>
+                  <td>${body.nombre_fantasia}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Razón social</td>
+                  <td>${body.razon_social}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">CUIT</td>
+                  <td>${body.cuit}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Rubro</td>
+                  <td>${body.rubro}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Ciudad</td>
+                  <td>${body.ciudad}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Provincia</td>
+                  <td>${body.provincia}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Responsable</td>
+                  <td>${body.responsable_nombre}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">Email</td>
+                  <td>${body.email}</td>
+                </tr>
+
+                <tr>
+                  <td style="padding:8px;font-weight:bold;">WhatsApp</td>
+                  <td>${body.whatsapp}</td>
+                </tr>
+
+              </table>
+
+              <div
+                style="
+                  margin-top:30px;
+                  padding:18px;
+                  background:#f8fafc;
+                  border-radius:12px;
+                "
+              >
+
+                Ingresá al Backoffice para revisar la solicitud
+                y comenzar la configuración del comercio.
+
+              </div>
+
+            </div>
+          `,
+
+          category: 'Notificación interna',
+        }),
+      })
     } catch (emailError) {
       console.error('Solicitud guardada, pero falló el email:', emailError)
     }
