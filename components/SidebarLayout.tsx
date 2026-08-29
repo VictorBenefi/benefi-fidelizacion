@@ -212,7 +212,7 @@ export default function SidebarLayout({
           className={`fixed inset-y-0 left-0 z-[60] w-[300px] max-w-[86vw] overflow-y-auto border-r border-white/10 text-white transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-auto lg:max-w-none lg:translate-x-0 ${
             menuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
-          style={{ background: sidebarColor }}
+          style={{ background: '#1E3A5F' }}
         >
           <div className="flex min-h-full flex-col p-[22px]">
             <div className="mb-[18px] rounded-[18px] border border-white/10 bg-white/[0.04] p-4">

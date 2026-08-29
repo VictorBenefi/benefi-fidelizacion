@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabaseClient } from '@/lib/supabaseClient'
+import InstallPwa from '@/components/pwa/InstallPwa'
 
 type NotificacionRelacion = {
   id: string
@@ -24,6 +25,8 @@ type NotificacionRelacion = {
 export default function DashboardUsuario() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
+const esRegistroNuevo = searchParams.get('nuevo') === '1'
   const comercioId = params?.comercioId as string
 
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -398,6 +401,14 @@ export default function DashboardUsuario() {
             )}
           </div>
         </header>
+
+        <InstallPwa
+            nombreComercio={branding.nombrePrograma}
+            modo={esRegistroNuevo ? 'bienvenida' : 'tarjeta'}
+            onContinuar={() => {
+              router.replace(`/usuarios/${comercioId}/dashboard`)
+            }}
+          />
 
         <section
           style={{

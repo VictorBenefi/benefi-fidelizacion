@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabaseClient } from '@/lib/supabaseClient'
+import { Eye, EyeOff } from 'lucide-react'
 
 type TabKey = 'login' | 'register' | 'recover'
 
@@ -219,21 +220,21 @@ export default function UsuariosPage() {
         return
       }
 
-      const { data: relacion, error: relacionError } = await supabaseClient
-        .from('usuarios_comercios')
-        .select('id')
-        .eq('usuario_id', authData.user.id)
-        .eq('comercio_id', comercioId)
-        .maybeSingle()
+    const { data: relacion, error: relacionError } = await supabaseClient
+      .from('usuarios_comercios')
+      .select('id')
+      .eq('usuario_id', authData.user.id)
+      .eq('comercio_id', comercioId)
+      .maybeSingle()
 
-      if (relacionError || !relacion) {
-        await supabaseClient.auth.signOut()
-        setMensaje('Este usuario no está registrado en este comercio.')
-        setMensajeTipo('error')
-        return
-      }
+    if (relacionError || !relacion) {
+      await supabaseClient.auth.signOut()
+      setMensaje('Este usuario no está registrado en este comercio.')
+      setMensajeTipo('error')
+      return
+    }
 
-      router.push(`/usuarios/${comercioId}/dashboard`)
+    router.push(`/usuarios/${comercioId}/dashboard`)
     } catch (error) {
       console.error(error)
       setMensaje('Ocurrió un error al iniciar sesión')
@@ -337,8 +338,15 @@ export default function UsuariosPage() {
       }
 
       if (data.usuario_existente) {
+      const { error: loginExistenteError } =
+        await supabaseClient.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+
+      if (loginExistenteError) {
         setMensaje(
-          'Ya tenías una cuenta registrada. Te vinculamos a este comercio. Ingresá con tu email y contraseña habitual.'
+          'Ya tenías una cuenta registrada y te vinculamos a este comercio. Ingresá con tu contraseña habitual.'
         )
         setMensajeTipo('ok')
 
@@ -351,22 +359,27 @@ export default function UsuariosPage() {
         return
       }
 
-      const { error: loginError } = await supabaseClient.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      })
-      if (loginError) {
-        setMensaje(
-          'La cuenta fue creada, pero no se pudo iniciar sesión automáticamente. Probá ingresar manualmente.'
-        )
-        setMensajeTipo('error')
-        setTab('login')
-        setLoginEmail(email.trim())
-        setLoginPassword('')
-        return
-      }
+      router.push(`/usuarios/${comercioId}/dashboard?nuevo=1`)
+      return
+    }
 
-      router.push(`/usuarios/${comercioId}/dashboard`)
+    const { error: loginError } = await supabaseClient.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+
+    if (loginError) {
+      setMensaje(
+        'La cuenta fue creada, pero no se pudo iniciar sesión automáticamente. Probá ingresar manualmente.'
+      )
+      setMensajeTipo('error')
+      setTab('login')
+      setLoginEmail(email.trim())
+      setLoginPassword('')
+      return
+    }
+
+    router.push(`/usuarios/${comercioId}/dashboard?nuevo=1`)
     } catch (error) {
       console.error(error)
       setMensaje('Ocurrió un error al registrarte')
@@ -445,6 +458,14 @@ export default function UsuariosPage() {
                 label="Registrarme"
                 onClick={() => {
                   limpiarMensaje()
+
+                  setNombreCompleto('')
+                  setDni('')
+                  setTelefono('')
+                  setEmail('')
+                  setPassword('')
+                  setConfirmPassword('')
+
                   setTab('register')
                 }}
                 color={branding.colorBoton}
@@ -486,13 +507,22 @@ export default function UsuariosPage() {
                         placeholder="Ingresá tu contraseña"
                         className={`${inputClassName} pr-12`}
                       />
+
                       <button
                         type="button"
                         onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
-                        aria-label={showLoginPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
+                        aria-label={
+                          showLoginPassword
+                            ? 'Ocultar contraseña'
+                            : 'Mostrar contraseña'
+                        }
                       >
-                        {showLoginPassword ? '🙈' : '👁️'}
+                        {showLoginPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -501,8 +531,7 @@ export default function UsuariosPage() {
                     type="button"
                     onClick={handleLogin}
                     disabled={loading}
-                    className="mt-1 h-12 w-full rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-                    style={{ background: branding.colorBoton }}
+                    className="mt-1 h-12 w-full cursor-pointer rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"                    style={{ background: branding.colorBoton }}
                   >
                     {loading ? 'Ingresando...' : 'Ingresar'}
                   </button>
@@ -516,7 +545,7 @@ export default function UsuariosPage() {
                       setRecoverConfirmPassword('')
                       setTab('recover')
                     }}
-                    className="mx-auto mt-1 text-sm font-semibold text-blue-600 underline underline-offset-4"
+                    className="mx-auto mt-1 cursor-pointer text-sm font-semibold text-blue-600 underline underline-offset-4"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
@@ -564,10 +593,18 @@ export default function UsuariosPage() {
                       <button
                         type="button"
                         onClick={() => setShowRecoverPassword(!showRecoverPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
-                        aria-label={showRecoverPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
+                        aria-label={
+                          showRecoverPassword
+                            ? 'Ocultar contraseña'
+                            : 'Mostrar contraseña'
+                        }
                       >
-                        {showRecoverPassword ? '🙈' : '👁️'}
+                        {showRecoverPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -589,14 +626,18 @@ export default function UsuariosPage() {
                         onClick={() =>
                           setShowRecoverConfirmPassword(!showRecoverConfirmPassword)
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
                         aria-label={
                           showRecoverConfirmPassword
                             ? 'Ocultar contraseña'
                             : 'Mostrar contraseña'
                         }
                       >
-                        {showRecoverConfirmPassword ? '🙈' : '👁️'}
+                        {showRecoverConfirmPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -605,8 +646,7 @@ export default function UsuariosPage() {
                     type="button"
                     onClick={handleRecoverPassword}
                     disabled={loading}
-                    className="mt-1 h-12 w-full rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-                    style={{ background: branding.colorBoton }}
+                    className="mt-1 h-12 w-full cursor-pointer rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"                    style={{ background: branding.colorBoton }}
                   >
                     {loading ? 'Actualizando...' : 'Actualizar contraseña'}
                   </button>
@@ -617,7 +657,7 @@ export default function UsuariosPage() {
                       limpiarMensaje()
                       setTab('login')
                     }}
-                    className="mx-auto mt-1 text-sm font-semibold text-blue-600 underline underline-offset-4"
+                    className="mx-auto mt-1 cursor-pointer text-sm font-semibold text-blue-600 underline underline-offset-4"
                   >
                     Volver al ingreso
                   </button>
@@ -636,6 +676,7 @@ export default function UsuariosPage() {
                   </p>
                 </div>
 
+               <form autoComplete="off" onSubmit={(e) => e.preventDefault()}> 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <label className="mb-2 block text-sm font-bold text-slate-700">
@@ -683,9 +724,15 @@ export default function UsuariosPage() {
                     </label>
                     <input
                       type="email"
+                      name="benefi-registro-correo-nuevo"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tuemail@correo.com"
+                      autoComplete="off"
+                      readOnly
+                      onFocus={(e) => {
+                        e.currentTarget.removeAttribute('readonly')
+                      }}
                       className={inputClassName}
                     />
                   </div>
@@ -697,20 +744,32 @@ export default function UsuariosPage() {
                     <div className="relative">
                       <input
                         type={showRegisterPassword ? 'text' : 'password'}
+                        name="benefi-registro-clave-nueva"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
+                        autoComplete="new-password"
+                        readOnly
+                        onFocus={(e) => {
+                          e.currentTarget.removeAttribute('readonly')
+                        }}
                         className={`${inputClassName} pr-12`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
                         aria-label={
-                          showRegisterPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                          showRegisterPassword
+                            ? 'Ocultar contraseña'
+                            : 'Mostrar contraseña'
                         }
                       >
-                        {showRegisterPassword ? '🙈' : '👁️'}
+                        {showRegisterPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -722,9 +781,15 @@ export default function UsuariosPage() {
                     <div className="relative">
                       <input
                         type={showRegisterConfirmPassword ? 'text' : 'password'}
+                        name="benefi-registro-confirmacion-clave"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Repetí la contraseña"
+                        autoComplete="new-password"
+                        readOnly
+                        onFocus={(e) => {
+                          e.currentTarget.removeAttribute('readonly')
+                        }}
                         className={`${inputClassName} pr-12`}
                       />
                       <button
@@ -732,14 +797,18 @@ export default function UsuariosPage() {
                         onClick={() =>
                           setShowRegisterConfirmPassword(!showRegisterConfirmPassword)
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-sm text-slate-500 transition hover:bg-slate-100"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
                         aria-label={
                           showRegisterConfirmPassword
                             ? 'Ocultar contraseña'
                             : 'Mostrar contraseña'
                         }
                       >
-                        {showRegisterConfirmPassword ? '🙈' : '👁️'}
+                        {showRegisterConfirmPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -749,13 +818,13 @@ export default function UsuariosPage() {
                       type="button"
                       onClick={handleRegister}
                       disabled={loading}
-                      className="mt-1 h-12 w-full rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
-                      style={{ background: branding.colorBoton }}
+                      className="mt-1 h-12 w-full cursor-pointer rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"                      style={{ background: branding.colorBoton }}
                     >
                       {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                     </button>
                   </div>
                 </div>
+               </form> 
               </div>
             )}
 
@@ -796,7 +865,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className="h-11 rounded-xl text-sm font-extrabold transition"
+      className="h-11 cursor-pointer rounded-xl text-sm font-extrabold transition"
       style={{
         background: active ? color : 'transparent',
         color: active ? '#ffffff' : '#334155',

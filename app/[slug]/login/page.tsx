@@ -15,6 +15,11 @@ export default function ComercioLoginSlugPage() {
       return;
     }
 
+    if (slug.toLowerCase() === "admin") {
+      router.replace("/admin/login");
+      return;
+    }
+
     router.replace(`/comercio/login?slug=${encodeURIComponent(slug)}`);
   }, [params, router]);
 

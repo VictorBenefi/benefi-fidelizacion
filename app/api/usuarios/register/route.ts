@@ -14,16 +14,13 @@ async function enviarBienvenida({
   comercio: string
   comercioId: string
 }) {
-  console.log("ENTRO A enviarBienvenida", { email, nombre, comercio })
-
+  
   try {
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       (process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
         : "http://localhost:3000")
-
-    console.log("BASE URL EMAIL:", baseUrl)
 
     const response = await fetch(`${baseUrl}/api/emails/bienvenida`, {
       method: "POST",
@@ -39,8 +36,6 @@ async function enviarBienvenida({
     })
 
     const data = await response.json()
-
-    console.log("RESPUESTA EMAIL:", data)
 
     if (!response.ok) {
       console.error("ERROR RESPUESTA EMAIL:", data)
@@ -77,7 +72,23 @@ export async function POST(req: Request) {
       .maybeSingle()
 
     if (usuarioExistente) {
-      const { data: relacionExistente } = await supabaseAdmin
+  const emailExistente = String(usuarioExistente.email || '')
+    .trim()
+    .toLowerCase()
+
+  if (emailExistente !== email) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          'Este DNI ya está registrado con otro email. Ingresá con la cuenta que utilizaste originalmente.',
+        codigo: 'DNI_EMAIL_DIFERENTE',
+      },
+      { status: 409 }
+    )
+  }
+
+  const { data: relacionExistente } = await supabaseAdmin
         .from('usuarios_comercios')
         .select('id')
         .eq('usuario_id', usuarioExistente.id)
@@ -100,12 +111,23 @@ export async function POST(req: Request) {
         }
       }
 
-      const { data: saldoExistente } = await supabaseAdmin
-        .from('saldos')
-        .select('id')
-        .eq('usuario_id', usuarioExistente.id)
-        .eq('comercio_id', comercio_id)
-        .maybeSingle()
+      const { data: saldoExistente, error: saldoExistenteError } =
+        await supabaseAdmin
+          .from('saldos')
+          .select('usuario_id, comercio_id, saldo')
+          .eq('usuario_id', usuarioExistente.id)
+          .eq('comercio_id', comercio_id)
+          .maybeSingle()
+
+      if (saldoExistenteError) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: `No se pudo verificar el saldo existente: ${saldoExistenteError.message}`,
+          },
+          { status: 400 }
+        )
+      }
 
       if (!saldoExistente) {
         const { error: saldoError } = await supabaseAdmin
@@ -130,6 +152,35 @@ export async function POST(req: Request) {
         usuario_existente: true,
       })
     }
+
+    const { data: usuarioPorEmail, error: usuarioPorEmailError } =
+  await supabaseAdmin
+    .from('usuarios')
+    .select('id, email, dni, auth_user_id')
+    .eq('email', email)
+    .maybeSingle()
+
+if (usuarioPorEmailError) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: `No se pudo verificar el email: ${usuarioPorEmailError.message}`,
+    },
+    { status: 400 }
+  )
+}
+
+if (usuarioPorEmail) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        'Este email ya está registrado con otro DNI. Ingresá con tu cuenta existente.',
+      codigo: 'EMAIL_DNI_DIFERENTE',
+    },
+    { status: 409 }
+  )
+}
 
     const { data: authUser, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
@@ -165,11 +216,6 @@ export async function POST(req: Request) {
       )
     }
 
-    console.log("VOY A ENVIAR EMAIL BIENVENIDA", {
-    email,
-    nombre_completo,
-    comercio_id,
-    })
     
     const { data: comercioData, error: comercioError } = await supabaseAdmin
       .from("comercios")
@@ -177,10 +223,7 @@ export async function POST(req: Request) {
       .eq("id", comercio_id)
       .maybeSingle()
 
-    console.log("COMERCIO DATA:", comercioData)
-    console.log("COMERCIO ERROR:", comercioError)
-
-    const nombreComercio =
+   const nombreComercio =
       comercioData?.nombre_fantasia ||
       comercioData?.razon_social ||
       comercioData?.email ||
