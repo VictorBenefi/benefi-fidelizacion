@@ -40,9 +40,14 @@ const menu: MenuItem[] = [
     description: "Resumen del comercio",
   },
   {
-    href: "/terminal",
-    label: "Terminal",
-    description: "Carga, canje y anulaciones",
+  href: "/terminal",
+  label: "Terminal",
+  description: "Carga, canje y anulaciones",
+  },
+  {
+    href: "/comercio/terminales",
+    label: "Terminales",
+    description: "Sucursales y accesos por PIN",
   },
   {
     href: "/comercio/promociones",

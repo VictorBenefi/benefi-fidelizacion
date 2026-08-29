@@ -9,6 +9,7 @@ export async function POST(req: Request) {
     const {
       usuario_id,
       comercio_id,
+      terminal_id,
       promocion_id,
       monto_compra,
       nro_ticket,
@@ -29,6 +30,40 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
+    if (!terminal_id) {
+      return NextResponse.json(
+        { ok: false, error: 'terminal_id es obligatorio' },
+        { status: 400 }
+      )
+    }
+
+    // Validar que la terminal exista, esté activa y pertenezca al comercio
+      const { data: terminal, error: terminalError } = await supabaseAdmin
+        .from('terminales')
+        .select('id, comercio_id, nombre_sucursal, activa')
+        .eq('id', terminal_id)
+        .eq('comercio_id', comercio_id)
+        .eq('activa', true)
+        .maybeSingle()
+
+      if (terminalError) {
+        console.error('Error validando terminal:', terminalError)
+
+        return NextResponse.json(
+          { ok: false, error: 'No se pudo validar la terminal' },
+          { status: 500 }
+        )
+      }
+
+      if (!terminal) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: 'La terminal no existe, está inactiva o no pertenece a este comercio',
+          },
+          { status: 403 }
+        )
+      }
 
     if (!promocion_id) {
       return NextResponse.json(
@@ -147,6 +182,7 @@ if (puntosGenerados <= 0) {
       movimientosAInsertar.push({
         usuario_id,
         comercio_id,
+        terminal_id,
         promocion_id: null,
         operacion_id: operacionId,
         tipo: 'canje',
@@ -167,6 +203,7 @@ if (puntosGenerados <= 0) {
     movimientosAInsertar.push({
       usuario_id,
       comercio_id,
+      terminal_id,
       promocion_id,
       operacion_id: operacionId,
       tipo: 'carga',

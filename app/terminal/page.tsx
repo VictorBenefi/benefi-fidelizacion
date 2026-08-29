@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePortalCampaign } from '@/hooks/usePortalCampaign'
-import { getCurrentComercio } from '@/lib/getCurrentComercio'
-import SidebarLayout from '@/components/SidebarLayout'
+
+
 
 type Cliente = {
   id: string
@@ -81,30 +81,49 @@ export default function Home() {
   const [fechaHastaCliente, setFechaHastaCliente] = useState('')
   const [fechaDesdeComercio, setFechaDesdeComercio] = useState('')
   const [fechaHastaComercio, setFechaHastaComercio] = useState('')
+  const [mostrarExportaciones, setMostrarExportaciones] = useState(false)
+  const [terminalActual, setTerminalActual] = useState<{
+  id: string
+  comercio_id: string
+  nombre_sucursal: string
+} | null>(null)
+
+const [validandoTerminal, setValidandoTerminal] = useState(true)
 
 useEffect(() => {
-async function loadComercio() {
-  try {
-    const comercio = await getCurrentComercio();
+  if (typeof window === 'undefined') return
 
-    if (comercio?.id) {
-      setComercioId(comercio.id);
-      return;
-    }
+  const terminalGuardada = sessionStorage.getItem('benefi_terminal')
 
-    console.warn("No se encontró comercio para el usuario logueado");
-
-    if (typeof window !== "undefined") {
-      window.location.href = "/comercio/login";
-    }
-    } catch (error) {
-      console.error("Error obteniendo comercio actual", error);
-    }
+  if (!terminalGuardada) {
+    window.location.href = '/terminal/login'
+    return
   }
 
-  loadComercio();
-}, []);
-  
+  try {
+    const terminal = JSON.parse(terminalGuardada)
+
+    if (
+      !terminal?.id ||
+      !terminal?.comercio_id ||
+      !terminal?.nombre_sucursal
+    ) {
+      sessionStorage.removeItem('benefi_terminal')
+      window.location.href = '/terminal/login'
+      return
+    }
+
+    setTerminalActual(terminal)
+    setComercioId(terminal.comercio_id)
+    setValidandoTerminal(false)
+  } catch (error) {
+    console.error('Terminal inválida', error)
+    sessionStorage.removeItem('benefi_terminal')
+    window.location.href = '/terminal/login'
+  }
+}, [])
+
+
   const limpiarMensajes = () => {
     setMensaje('')
     setMensajeColor('')
@@ -353,14 +372,15 @@ const calcularPuntos = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          usuario_id: cliente.id,
-          comercio_id: comercioId,
-          promocion_id: promocionId,
-          monto_compra: importe,
-          nro_ticket: nroTicket,
-          observaciones,
-          puntos_canje: canje,
-        }),
+        usuario_id: cliente.id,
+        comercio_id: comercioId,
+        terminal_id: terminalActual?.id,
+        promocion_id: promocionId,
+        monto_compra: importe,
+        nro_ticket: nroTicket,
+        observaciones,
+        puntos_canje: canje,
+      }),
       })
 
       const data = await res.json()
@@ -621,15 +641,40 @@ const calcularPuntos = () => {
   return Number(numero).toLocaleString("es-AR")
 }
 
+  if (validandoTerminal || !terminalActual) {
   return (
-    <SidebarLayout>
-      <div style={{ minHeight: '100vh', padding: 20, fontFamily: 'Arial, sans-serif' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f8fafc',
+        color: '#64748b',
+        fontFamily: 'Arial, sans-serif',
+      }}
+    >
+      Validando terminal...
+    </div>
+  )
+}
+
+const cerrarTerminal = () => {
+  if (typeof window === 'undefined') return
+
+  sessionStorage.removeItem('benefi_terminal')
+  window.location.href = '/terminal/login'
+}
+
+return (
+  <div className="min-h-screen px-3 py-4 sm:p-5" style={{ fontFamily: 'Arial, sans-serif' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ marginBottom: 22 }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              gap: 8,
               padding: '6px 12px',
               borderRadius: 999,
               background: '#eff6ff',
@@ -639,12 +684,80 @@ const calcularPuntos = () => {
               marginBottom: 10,
             }}
           >
-            Terminal operativa
+            <span>Terminal operativa</span>
+
+            <span
+              style={{
+                width: 4,
+                height: 4,
+                borderRadius: '50%',
+                background: '#93c5fd',
+              }}
+            />
+
+            <span>{terminalActual.nombre_sucursal}</span>
           </div>
 
-          <h1 style={{ margin: 0, marginBottom: 6, fontSize: 36, color: '#111827' }}>
-            {campaign.portal_titulo || 'Terminal de Fidelización'}
-          </h1>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+              marginBottom: 6,
+            }}
+          >
+            <h1 className="m-0 text-3xl font-normal text-slate-900 sm:text-4xl">
+              {campaign.portal_titulo || 'Terminal de Fidelización'}
+            </h1>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flexWrap: 'wrap',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setMostrarExportaciones(true)}
+                style={{
+                  height: 42,
+                  padding: '0 16px',
+                  borderRadius: 12,
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                Exportaciones
+              </button>
+
+              <button
+                type="button"
+                onClick={cerrarTerminal}
+                style={{
+                  height: 42,
+                  padding: '0 16px',
+                  borderRadius: 12,
+                  border: '1px solid #fecaca',
+                  background: '#ffffff',
+                  color: '#dc2626',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                }}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+
           <p style={{ margin: 0, color: '#6b7280', fontSize: 15 }}>
             {campaign.portal_descripcion ||
               'Buscá al cliente por DNI y procesá operaciones de forma rápida'}
@@ -758,14 +871,7 @@ const calcularPuntos = () => {
 
         {cliente && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '360px 1fr',
-                gap: 18,
-                alignItems: 'start',
-              }}
-            >
+              <div className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[300px_minmax(0,1fr)]">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div
                   style={{
@@ -904,7 +1010,7 @@ const calcularPuntos = () => {
                     >
                       Operar
                     </div>
-                    <h2 style={{ margin: 0, fontSize: 30, color: '#111827' }}>
+                    <h2 className="m-0 text-2xl text-slate-900 sm:text-3xl">
                       Procesar operación
                     </h2>
                   </div>
@@ -924,14 +1030,7 @@ const calcularPuntos = () => {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, minmax(260px, 1fr))',
-                    gap: 16,
-                    marginBottom: 16,
-                  }}
-                >
+                <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div
                     style={{
                       background: '#f8fbff',
@@ -1060,14 +1159,7 @@ const calcularPuntos = () => {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: 16,
-                    marginBottom: 16,
-                  }}
-                >
+                <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label style={labelStyle}>Nro. ticket</label>
                     <input
@@ -1112,13 +1204,7 @@ const calcularPuntos = () => {
                     Resumen simple
                   </div>
 
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, minmax(180px, 1fr))',
-                      gap: 12,
-                    }}
-                  >
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <ResumenBox
                       titulo="Acredita"
                       valor={`+${puntosCalculados} pts`}
@@ -1223,87 +1309,117 @@ const calcularPuntos = () => {
               {operacionesAgrupadas.length > 0 && (
                 <div
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                    maxHeight: 720,
-                    overflowY: 'auto',
-                    paddingRight: 4,
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 16,
+                    overflow: 'hidden',
                   }}
                 >
+                  {/* CABECERA DESKTOP */}
+                  <div className="hidden md:grid md:grid-cols-[150px_1fr_130px_120px_120px_120px_120px]">
+                    {[
+                      'Fecha',
+                      'Ticket',
+                      'Compra',
+                      'Generados',
+                      'Canjeados',
+                      'Resultado',
+                      'Acciones',
+                    ].map((titulo) => (
+                      <div
+                        key={titulo}
+                        style={{
+                          padding: '12px 14px',
+                          background: '#f8fafc',
+                          borderBottom: '1px solid #e2e8f0',
+                          color: '#64748b',
+                          fontSize: 12,
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {titulo}
+                      </div>
+                    ))}
+                  </div>
+
                   {operacionesAgrupadas.map((op) => {
                     const estado = op.es_anulacion
-                      ? { bg: '#dbeafe', color: '#1d4ed8', label: 'ANULACIÓN' }
+                      ? {
+                          bg: '#dbeafe',
+                          color: '#1d4ed8',
+                          label: 'ANULACIÓN',
+                        }
                       : op.esta_anulada
-                        ? { bg: '#fee2e2', color: '#991b1b', label: 'ANULADA' }
-                        : { bg: '#dcfce7', color: '#166534', label: 'OPERACIÓN' }
+                        ? {
+                            bg: '#fee2e2',
+                            color: '#991b1b',
+                            label: 'ANULADA',
+                          }
+                        : {
+                            bg: '#dcfce7',
+                            color: '#166534',
+                            label: 'OPERACIÓN',
+                          }
 
                     return (
                       <div
                         key={op.operacion_id}
                         style={{
-                          border: op.esta_anulada
-                            ? '1px solid #fecaca'
-                            : op.es_anulacion
-                              ? '1px solid #bfdbfe'
-                              : '1px solid #e5e7eb',
-                          borderRadius: 18,
-                          padding: 16,
+                          borderBottom: '1px solid #e2e8f0',
                           background: op.esta_anulada
-                            ? '#fef2f2'
+                            ? '#fff7f7'
                             : op.es_anulacion
-                              ? '#eff6ff'
-                              : '#fafafa',
-                          opacity: anulandoOperacionId === op.operacion_id
-                            ? 0.7
-                            : op.esta_anulada
-                              ? 0.65
-                              : 1,
+                              ? '#f8fbff'
+                              : '#ffffff',
+                          opacity:
+                            anulandoOperacionId === op.operacion_id
+                              ? 0.7
+                              : op.esta_anulada
+                                ? 0.7
+                                : 1,
                         }}
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            gap: 12,
-                            alignItems: 'flex-start',
-                            marginBottom: 12,
-                            flexWrap: 'wrap',
-                          }}
-                        >
-                          <div>
+                        {/* FILA DESKTOP */}
+                        <div className="hidden md:grid md:grid-cols-[150px_1fr_130px_120px_120px_120px_120px] md:items-center">
+                          <div
+                            style={{
+                              padding: '14px',
+                              fontSize: 13,
+                              color: '#475569',
+                            }}
+                          >
+                            {formatearFecha(op.fecha)}
+                          </div>
+
+                          <div
+                            style={{
+                              padding: '14px',
+                              minWidth: 0,
+                            }}
+                          >
                             <div
                               style={{
                                 fontWeight: 800,
-                                fontSize: 17,
                                 color: '#111827',
-                                marginBottom: 8,
-                              }}
-                            >
-                              {op.resultado_neto >= 0 ? '+' : ''}{op.resultado_neto} puntos
-                            </div>
-
-                            <div
-                              style={{
                                 fontSize: 14,
-                                color: '#475569',
-                                marginBottom: 8,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
                               }}
                             >
-                              Ticket: <strong>{op.nro_ticket}</strong> · Compra:{' '}
-                              <strong>{formatMoney(op.monto_compra)}</strong>
+                              {op.nro_ticket}
                             </div>
 
                             <span
                               style={{
                                 display: 'inline-flex',
-                                alignItems: 'center',
-                                padding: '5px 12px',
+                                marginTop: 5,
+                                padding: '3px 8px',
                                 borderRadius: 999,
-                                fontSize: 12,
-                                fontWeight: 800,
                                 background: estado.bg,
                                 color: estado.color,
+                                fontWeight: 800,
+                                fontSize: 10,
                               }}
                             >
                               {estado.label}
@@ -1312,144 +1428,377 @@ const calcularPuntos = () => {
 
                           <div
                             style={{
-                              fontSize: 12,
-                              color: '#6b7280',
-                              whiteSpace: 'nowrap',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {formatearFecha(op.fecha)}
-                          </div>
-                        </div>
-
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(3, minmax(180px, 1fr))',
-                            gap: 12,
-                            marginBottom: 10,
-                          }}
-                        >
-                          <MiniBox
-                            label="Generados"
-                            value={`+${op.puntos_generados}`}
-                            color="#166534"
-                          />
-                          <MiniBox
-                            label="Canjeados"
-                            value={`-${op.puntos_canjeados}`}
-                            color="#991b1b"
-                          />
-                          <MiniBox
-                            label="Resultado"
-                            value={`${op.resultado_neto >= 0 ? '+' : ''}${op.resultado_neto}`}
-                            color={op.resultado_neto >= 0 ? '#166534' : '#991b1b'}
-                          />
-                        </div>
-
-                        {op.observaciones && (
-                          <div
-                            style={{
-                              marginBottom: 10,
-                              fontSize: 13,
-                              color: '#4b5563',
-                              background: '#fff',
-                              border: '1px solid #e5e7eb',
-                              borderRadius: 12,
-                              padding: 12,
-                            }}
-                          >
-                            <strong>Observaciones:</strong> {op.observaciones}
-                          </div>
-                        )}
-
-                        <details
-                          style={{
-                            marginBottom: 12,
-                            background: '#fff',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: 12,
-                            padding: 12,
-                          }}
-                        >
-                          <summary
-                            style={{
-                              cursor: 'pointer',
+                              padding: '14px',
                               fontWeight: 700,
                               color: '#334155',
                             }}
                           >
-                            Ver detalle interno
-                          </summary>
+                            {formatMoney(op.monto_compra)}
+                          </div>
+
+                          <div
+                            style={{
+                              padding: '14px',
+                              fontWeight: 800,
+                              color: '#166534',
+                            }}
+                          >
+                            +{op.puntos_generados}
+                          </div>
+
+                          <div
+                            style={{
+                              padding: '14px',
+                              fontWeight: 800,
+                              color: '#991b1b',
+                            }}
+                          >
+                            -{op.puntos_canjeados}
+                          </div>
+
+                          <div
+                            style={{
+                              padding: '14px',
+                              fontWeight: 900,
+                              color:
+                                op.resultado_neto >= 0
+                                  ? '#166534'
+                                  : '#991b1b',
+                            }}
+                          >
+                            {op.resultado_neto >= 0 ? '+' : ''}
+                            {op.resultado_neto}
+                          </div>
+
+                          <div
+                            style={{
+                              padding: '14px',
+                              display: 'flex',
+                              gap: 8,
+                              alignItems: 'center',
+                            }}
+                          >
+                            <details>
+                              <summary
+                                style={{
+                                  cursor: 'pointer',
+                                  fontWeight: 700,
+                                  color: '#2563eb',
+                                  listStyle: 'none',
+                                  fontSize: 13,
+                                }}
+                              >
+                                Ver
+                              </summary>
+
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  zIndex: 20,
+                                  width: 300,
+                                  marginTop: 8,
+                                  padding: 14,
+                                  background: '#fff',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: 12,
+                                  boxShadow:
+                                    '0 12px 30px rgba(15,23,42,0.14)',
+                                }}
+                              >
+                                {op.observaciones && (
+                                  <div
+                                    style={{
+                                      marginBottom: 12,
+                                      fontSize: 13,
+                                      color: '#475569',
+                                    }}
+                                  >
+                                    <strong>Observaciones:</strong>{' '}
+                                    {op.observaciones}
+                                  </div>
+                                )}
+
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 8,
+                                  }}
+                                >
+                                  {op.movimientos.map((mov) => (
+                                    <div
+                                      key={mov.id}
+                                      style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        gap: 12,
+                                        paddingBottom: 6,
+                                        borderBottom:
+                                          '1px dashed #e2e8f0',
+                                        fontSize: 12,
+                                      }}
+                                    >
+                                      <span>
+                                        {mov.tipo.toUpperCase()}
+                                        {mov.es_reverso
+                                          ? ' · anulación'
+                                          : ''}
+                                      </span>
+
+                                      <strong
+                                        style={{
+                                          color:
+                                            mov.tipo === 'carga'
+                                              ? '#166534'
+                                              : '#991b1b',
+                                        }}
+                                      >
+                                        {mov.tipo === 'carga'
+                                          ? '+'
+                                          : '-'}
+                                        {mov.puntos}
+                                      </strong>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </details>
+
+                            {op.puede_anular && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  abrirConfirmacionAnulacion(op)
+                                }
+                                disabled={Boolean(
+                                  anulandoOperacionId
+                                )}
+                                style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: '#dc2626',
+                                  fontWeight: 700,
+                                  fontSize: 13,
+                                  cursor: anulandoOperacionId
+                                    ? 'not-allowed'
+                                    : 'pointer',
+                                }}
+                              >
+                                Anular
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* VISTA MOBILE */}
+                        <div className="block p-4 md:hidden">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              gap: 12,
+                              alignItems: 'flex-start',
+                              marginBottom: 8,
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontWeight: 800,
+                                  color: '#111827',
+                                  fontSize: 15,
+                                }}
+                              >
+                                Ticket {op.nro_ticket}
+                              </div>
+
+                              <div
+                                style={{
+                                  color: '#64748b',
+                                  fontSize: 12,
+                                  marginTop: 3,
+                                }}
+                              >
+                                {formatearFecha(op.fecha)}
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                fontWeight: 900,
+                                fontSize: 18,
+                                color:
+                                  op.resultado_neto >= 0
+                                    ? '#166534'
+                                    : '#991b1b',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {op.resultado_neto >= 0 ? '+' : ''}
+                              {op.resultado_neto} pts
+                            </div>
+                          </div>
 
                           <div
                             style={{
                               display: 'flex',
-                              flexDirection: 'column',
-                              gap: 8,
-                              marginTop: 12,
+                              flexWrap: 'wrap',
+                              gap: '6px 14px',
+                              fontSize: 13,
+                              color: '#475569',
+                              marginBottom: 10,
                             }}
                           >
-                            {op.movimientos.map((mov) => (
-                              <div
-                                key={mov.id}
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  gap: 12,
-                                  fontSize: 13,
-                                  color: '#374151',
-                                  borderBottom: '1px dashed #e5e7eb',
-                                  paddingBottom: 6,
-                                }}
-                              >
-                                <div>
-                                  <strong>{mov.tipo.toUpperCase()}</strong>
-                                  {mov.es_reverso ? ' · anulación' : ''}
-                                </div>
-                                <div
-                                  style={{
-                                    fontWeight: 700,
-                                    color: mov.tipo === 'carga' ? '#166534' : '#991b1b',
-                                  }}
-                                >
-                                  {mov.tipo === 'carga' ? '+' : '-'}
-                                  {mov.puntos}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </details>
+                            <span>
+                              Compra:{' '}
+                              <strong>
+                                {formatMoney(op.monto_compra)}
+                              </strong>
+                            </span>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          {op.puede_anular ? (
-                            <button
-                              onClick={() => abrirConfirmacionAnulacion(op)}
-                              disabled={Boolean(anulandoOperacionId)}
+                            <span>
+                              Generados:{' '}
+                              <strong style={{ color: '#166534' }}>
+                                +{op.puntos_generados}
+                              </strong>
+                            </span>
+
+                            <span>
+                              Canjeados:{' '}
+                              <strong style={{ color: '#991b1b' }}>
+                                -{op.puntos_canjeados}
+                              </strong>
+                            </span>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: 12,
+                            }}
+                          >
+                            <span
                               style={{
-                                height: 40,
-                                padding: '0 16px',
-                                borderRadius: 12,
-                                border: 'none',
-                                background: Boolean(anulandoOperacionId) ? '#9ca3af' : '#dc2626',
-                                color: '#fff',
-                                fontWeight: 700,
-                                cursor: Boolean(anulandoOperacionId) ? 'not-allowed' : 'pointer',
+                                display: 'inline-flex',
+                                padding: '4px 9px',
+                                borderRadius: 999,
+                                background: estado.bg,
+                                color: estado.color,
+                                fontWeight: 800,
+                                fontSize: 10,
                               }}
                             >
-                              {anulandoOperacionId === op.operacion_id
-                                ? 'Anulando...'
-                                : 'Anular operación'}
-                            </button>
-                          ) : (
-                            <div style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>
-                              {op.es_anulacion
-                                ? 'Operación generada por anulación'
-                                : op.esta_anulada
-                                  ? 'Operación anulada'
-                                  : 'No disponible'}
+                              {estado.label}
+                            </span>
+
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 14,
+                              }}
+                            >
+                              <details>
+                                <summary
+                                  style={{
+                                    cursor: 'pointer',
+                                    color: '#2563eb',
+                                    fontWeight: 700,
+                                    fontSize: 13,
+                                  }}
+                                >
+                                  Ver detalle
+                                </summary>
+
+                                <div
+                                  style={{
+                                    marginTop: 12,
+                                    padding: 12,
+                                    background: '#f8fafc',
+                                    borderRadius: 10,
+                                    border: '1px solid #e2e8f0',
+                                  }}
+                                >
+                                  {op.observaciones && (
+                                    <div
+                                      style={{
+                                        marginBottom: 10,
+                                        fontSize: 12,
+                                      }}
+                                    >
+                                      <strong>
+                                        Observaciones:
+                                      </strong>{' '}
+                                      {op.observaciones}
+                                    </div>
+                                  )}
+
+                                  {op.movimientos.map((mov) => (
+                                    <div
+                                      key={mov.id}
+                                      style={{
+                                        display: 'flex',
+                                        justifyContent:
+                                          'space-between',
+                                        gap: 12,
+                                        padding: '6px 0',
+                                        borderBottom:
+                                          '1px dashed #e2e8f0',
+                                        fontSize: 12,
+                                      }}
+                                    >
+                                      <span>
+                                        {mov.tipo.toUpperCase()}
+                                        {mov.es_reverso
+                                          ? ' · anulación'
+                                          : ''}
+                                      </span>
+
+                                      <strong
+                                        style={{
+                                          color:
+                                            mov.tipo === 'carga'
+                                              ? '#166534'
+                                              : '#991b1b',
+                                        }}
+                                      >
+                                        {mov.tipo === 'carga'
+                                          ? '+'
+                                          : '-'}
+                                        {mov.puntos}
+                                      </strong>
+                                    </div>
+                                  ))}
+                                </div>
+                              </details>
+
+                              {op.puede_anular && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    abrirConfirmacionAnulacion(op)
+                                  }
+                                  disabled={Boolean(
+                                    anulandoOperacionId
+                                  )}
+                                  style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: '#dc2626',
+                                    fontWeight: 700,
+                                    fontSize: 13,
+                                    cursor: anulandoOperacionId
+                                      ? 'not-allowed'
+                                      : 'pointer',
+                                  }}
+                                >
+                                  Anular
+                                </button>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     )
@@ -1458,145 +1807,208 @@ const calcularPuntos = () => {
               )}
             </div>
 
-            <div
-              style={{
-                background: '#ffffff',
-                borderRadius: 22,
-                boxShadow: '0 14px 34px rgba(0,0,0,0.08)',
-                padding: 24,
-                border: '1px solid #edf2f7',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 13,
-                  color: '#64748b',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  marginBottom: 8,
-                }}
-              >
-                Herramientas avanzadas
-              </div>
-              <h2 style={{ margin: 0, marginBottom: 18, fontSize: 28, color: '#111827' }}>
-                Exportaciones
-              </h2>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, minmax(280px, 1fr))',
-                  gap: 18,
-                }}
-              >
-                <div
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 18,
-                    padding: 18,
-                  }}
-                >
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 12 }}>
-                    Historial del cliente
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
-                    <div>
-                      <label style={labelStyle}>Desde</label>
-                      <input
-                        type="date"
-                        value={fechaDesdeCliente}
-                        onChange={(e) => setFechaDesdeCliente(e.target.value)}
-                        style={inputStyle}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={labelStyle}>Hasta</label>
-                      <input
-                        type="date"
-                        value={fechaHastaCliente}
-                        onChange={(e) => setFechaHastaCliente(e.target.value)}
-                        style={inputStyle}
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={exportarClienteActual}
-                    style={{
-                      height: 44,
-                      padding: '0 18px',
-                      borderRadius: 12,
-                      border: 'none',
-                      background: '#2563eb',
-                      color: '#fff',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      width: '100%',
-                    }}
-                  >
-                    Exportar cliente
-                  </button>
-                </div>
-
-                <div
-                  style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 18,
-                    padding: 18,
-                  }}
-                >
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 12 }}>
-                    Operaciones del comercio
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
-                    <div>
-                      <label style={labelStyle}>Desde</label>
-                      <input
-                        type="date"
-                        value={fechaDesdeComercio}
-                        onChange={(e) => setFechaDesdeComercio(e.target.value)}
-                        style={inputStyle}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={labelStyle}>Hasta</label>
-                      <input
-                        type="date"
-                        value={fechaHastaComercio}
-                        onChange={(e) => setFechaHastaComercio(e.target.value)}
-                        style={inputStyle}
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={exportarComercio}
-                    style={{
-                      height: 44,
-                      padding: '0 18px',
-                      borderRadius: 12,
-                      border: 'none',
-                      background: '#7c3aed',
-                      color: '#fff',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      width: '100%',
-                    }}
-                  >
-                    Exportar comercio
-                  </button>
-                </div>
-              </div>
-            </div>
+            
           </div>
         )}
       </div>
+
+      {mostrarExportaciones && (
+        <div
+          onClick={() => setMostrarExportaciones(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 760,
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              background: '#ffffff',
+              borderRadius: 20,
+              padding: 24,
+              boxShadow: '0 24px 60px rgba(15, 23, 42, 0.25)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 16,
+                marginBottom: 22,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    marginBottom: 4,
+                  }}
+                >
+                  Herramientas avanzadas
+                </div>
+
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: 26,
+                    color: '#111827',
+                  }}
+                >
+                  Exportaciones
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarExportaciones(false)}
+                aria-label="Cerrar exportaciones"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#475569',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 16,
+                  padding: 18,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: '#111827',
+                    marginBottom: 16,
+                  }}
+                >
+                  Historial del cliente
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={labelStyle}>Desde</label>
+                  <input
+                    type="date"
+                    value={fechaDesdeCliente}
+                    onChange={(e) => setFechaDesdeCliente(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Hasta</label>
+                  <input
+                    type="date"
+                    value={fechaHastaCliente}
+                    onChange={(e) => setFechaHastaCliente(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={exportarClienteActual}
+                  style={{
+                    height: 44,
+                    width: '100%',
+                    borderRadius: 12,
+                    border: 'none',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Exportar cliente
+                </button>
+              </div>
+
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 16,
+                  padding: 18,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: '#111827',
+                    marginBottom: 16,
+                  }}
+                >
+                  Operaciones del comercio
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={labelStyle}>Desde</label>
+                  <input
+                    type="date"
+                    value={fechaDesdeComercio}
+                    onChange={(e) => setFechaDesdeComercio(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Hasta</label>
+                  <input
+                    type="date"
+                    value={fechaHastaComercio}
+                    onChange={(e) => setFechaHastaComercio(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={exportarComercio}
+                  style={{
+                    height: 44,
+                    width: '100%',
+                    borderRadius: 12,
+                    border: 'none',
+                    background: '#7c3aed',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Exportar comercio
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {mostrarConfirmacion && (
         <div
@@ -1812,10 +2224,9 @@ const calcularPuntos = () => {
           </div>
         </div>
       )}
-      </div>
-    </SidebarLayout>
-  )
-}
+            </div>
+      )
+    }
 
 function ResumenBox({
   titulo,
