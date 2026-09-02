@@ -11,7 +11,23 @@ const menuItems = [
   { label: "Solicitudes", href: "/admin/solicitudes", description: "Pruebas gratis pendientes"  },
   { label: "Usuarios", href: "/admin/usuarios", description: "Próximamente" },
   { label: "Promociones", href: "/admin/promociones" },
-  { label: "Movimientos", href: "/admin/movimientos", description: "Operaciones y auditoría" },
+  
+  { 
+  label: "Movimientos", 
+  href: "/admin/movimientos", 
+  description: "Operaciones y auditoría" 
+},
+{
+  label: "Pedidos",
+  href: "/admin/pedidos",
+  description: "Supervisión global de pedidos",
+},
+{
+  label: "Catálogo",
+  href: "/admin/catalogo",
+  description: "Productos y categorías",
+},
+  { label: "Terminales", href: "/admin/terminales", description: "Sucursales y terminales de comercios" },
   { label: "Configuración", href: "/admin/configuracion", description: "Próximamente" },
 ];
 

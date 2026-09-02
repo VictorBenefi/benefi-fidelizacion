@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { usuario_id, comercio_id } = body
+    const { usuario_id, comercio_id, terminal_id } = body
 
     if (!usuario_id) {
       return NextResponse.json(
@@ -20,11 +20,12 @@ export async function POST(req: Request) {
       )
     }
 
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('movimientos_puntos')
       .select(`
         id,
         operacion_id,
+        terminal_id,
         tipo,
         puntos,
         monto_compra,
@@ -39,8 +40,14 @@ export async function POST(req: Request) {
       `)
       .eq('usuario_id', usuario_id)
       .eq('comercio_id', comercio_id)
-      .order('fecha', { ascending: false })
-      .limit(30)
+
+    if (terminal_id) {
+      query = query.eq('terminal_id', terminal_id)
+    }
+
+const { data, error } = await query
+  .order('fecha', { ascending: false })
+  .limit(30)
 
     if (error) {
       return NextResponse.json(

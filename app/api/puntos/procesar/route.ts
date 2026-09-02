@@ -15,6 +15,7 @@ export async function POST(req: Request) {
       nro_ticket,
       observaciones,
       puntos_canje,
+      origen,
     } = body
 
     if (!usuario_id) {
@@ -30,14 +31,10 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
-    if (!terminal_id) {
-      return NextResponse.json(
-        { ok: false, error: 'terminal_id es obligatorio' },
-        { status: 400 }
-      )
-    }
-
-    // Validar que la terminal exista, esté activa y pertenezca al comercio
+   
+    // Si la operación viene de una terminal física,
+    // validar que exista, esté activa y pertenezca al comercio.
+    if (terminal_id) {
       const { data: terminal, error: terminalError } = await supabaseAdmin
         .from('terminales')
         .select('id, comercio_id, nombre_sucursal, activa')
@@ -59,11 +56,13 @@ export async function POST(req: Request) {
         return NextResponse.json(
           {
             ok: false,
-            error: 'La terminal no existe, está inactiva o no pertenece a este comercio',
+            error:
+              'La terminal no existe, está inactiva o no pertenece a este comercio',
           },
           { status: 403 }
         )
       }
+    }
 
     if (!promocion_id) {
       return NextResponse.json(
@@ -77,6 +76,10 @@ export async function POST(req: Request) {
      const ticketFinal = nro_ticket || `TCK-${Date.now()}`
      const operacionId = randomUUID()
      const fechaAhora = new Date().toISOString()
+     const origenFinal =
+      origen === 'backoffice' && !terminal_id
+        ? 'backoffice'
+        : 'terminal'
 
     if (canje < 0) {
       return NextResponse.json(
@@ -182,7 +185,8 @@ if (puntosGenerados <= 0) {
       movimientosAInsertar.push({
         usuario_id,
         comercio_id,
-        terminal_id,
+        terminal_id: terminal_id || null,
+        origen: origenFinal,
         promocion_id: null,
         operacion_id: operacionId,
         tipo: 'canje',
@@ -203,7 +207,8 @@ if (puntosGenerados <= 0) {
     movimientosAInsertar.push({
       usuario_id,
       comercio_id,
-      terminal_id,
+      terminal_id: terminal_id || null,
+      origen: origenFinal,
       promocion_id,
       operacion_id: operacionId,
       tipo: 'carga',

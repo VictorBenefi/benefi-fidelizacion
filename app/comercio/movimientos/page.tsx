@@ -63,9 +63,10 @@ function exportarMovimientos() {
   if (movimientosFiltrados.length === 0) return;
 
   const rows = movimientosFiltrados.map((m) => ({
-    Fecha: formatearFecha(m.created_at),
-    Cliente: m.usuarios?.nombre_completo || "",
-    DNI: m.usuarios?.dni || "",
+  Fecha: formatearFecha(m.created_at),
+  Sucursal: m.terminales?.nombre_sucursal || "",
+  Cliente: m.usuarios?.nombre_completo || "",
+  DNI: m.usuarios?.dni || "",
     Compra: m.monto_compra || 0,
     Tipo: m.tipo || "",
     Puntos: m.puntos || 0,
@@ -113,6 +114,7 @@ function exportarMovimientos() {
     .reduce((acc, m) => acc + Number(m.puntos || 0), 0);
 
   const movimientosFiltrados = movimientos.filter((m) => {
+    if (m.es_reverso === true) return false;
     const texto = `${m.usuarios?.nombre_completo || ""} ${m.usuarios?.dni || ""}`
       .toLowerCase()
       .includes(busqueda.toLowerCase());
@@ -213,14 +215,15 @@ function exportarMovimientos() {
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-3">Fecha</th>
-              <th className="p-3">Cliente</th>
-              <th className="p-3">DNI</th>
-              <th className="p-3">Compra</th>
-              <th className="p-3">Tipo</th>
-              <th className="p-3">Puntos</th>
-              <th className="p-3">Ticket</th>
-              <th className="p-3">Estado</th>
+              <th className="p-3 text-left">Fecha</th>
+              <th className="p-3 text-left">Sucursal</th>
+              <th className="p-3 text-left">Cliente</th>
+              <th className="p-3 text-left">DNI</th>
+              <th className="p-3 text-left">Compra</th>
+              <th className="p-3 text-left">Tipo</th>
+              <th className="p-3 text-left">Puntos</th>
+              <th className="p-3 text-left">Ticket</th>
+              <th className="p-3 text-left">Estado</th>
             </tr>
           </thead>
 
@@ -230,6 +233,11 @@ function exportarMovimientos() {
                 <td className="p-3">
                   {m.created_at ? new Date(m.created_at).toLocaleString() : "-"}
                 </td>
+
+                <td className="p-3">
+                  {m.terminales?.nombre_sucursal || "-"}
+                </td>
+
                 <td className="p-3">{m.usuarios?.nombre_completo || "-"}</td>
                 <td className="p-3">{m.usuarios?.dni || "-"}</td>
                 <td className="p-3">${m.monto_compra || 0}</td>
@@ -242,7 +250,7 @@ function exportarMovimientos() {
 
             {movimientosFiltrados.length === 0 && (
               <tr>
-                <td colSpan={8} className="p-4 text-center text-gray-500">
+                <td colSpan={9} className="p-4 text-center text-gray-500">
                   No se encontraron movimientos.
                 </td>
               </tr>

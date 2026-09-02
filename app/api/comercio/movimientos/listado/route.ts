@@ -23,9 +23,14 @@ export async function POST(req: Request) {
         nro_ticket,
         created_at,
         estado,
+        terminal_id,
+        es_reverso,
         usuarios (
           nombre_completo,
           dni
+        ),
+        terminales (
+          nombre_sucursal
         )
       `)
       .eq("comercio_id", comercio_id)

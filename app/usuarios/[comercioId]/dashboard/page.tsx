@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabaseClient } from '@/lib/supabaseClient'
 import InstallPwa from '@/components/pwa/InstallPwa'
+import ActivarNotificaciones from '@/components/pwa/ActivarNotificaciones'
 
 type NotificacionRelacion = {
   id: string
@@ -43,6 +44,7 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
   const [movimientos, setMovimientos] = useState<any[]>([])
   const [notificaciones, setNotificaciones] = useState<NotificacionRelacion[]>([])
   const [beneficios, setBeneficios] = useState([]);
+  const [catalogoHabilitado, setCatalogoHabilitado] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -66,6 +68,23 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
 
         if (dataBeneficios?.ok) {
           setBeneficios(dataBeneficios.promociones || []);
+        }
+
+        const resCatalogo = await fetch(
+          `/api/admin/catalogo/configuracion?comercio_id=${comercioId}`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        const dataCatalogo = await resCatalogo.json();
+
+        if (resCatalogo.ok) {
+          setCatalogoHabilitado(
+            dataCatalogo?.configuracion?.habilitado === true
+          );
+        } else {
+          setCatalogoHabilitado(false);
         }
 
         const { data: usuarioData } = await supabaseClient
@@ -319,6 +338,7 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
           </div>
 
           <div style={headerActionsStyle} ref={panelRef}>
+            <ActivarNotificaciones />
             <button
               type="button"
               onClick={() => setPanelNotificacionesAbierto((v) => !v)}
@@ -432,6 +452,102 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
             Usalos en {branding.nombrePrograma}
           </div>
         </section>
+        <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {catalogoHabilitado && (
+            <button
+              type="button"
+              onClick={() =>
+                router.push(`/usuarios/${comercioId}/catalogo`)
+              }
+              className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="mb-3 text-3xl">🛍️</div>
+
+              <div className="font-bold text-slate-900">
+                Catálogo
+              </div>
+
+              <div className="mt-1 text-xs leading-5 text-slate-500">
+                Productos y pedidos
+              </div>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("mis-movimientos")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                })
+            }
+            className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="mb-3 text-3xl">⭐</div>
+
+            <div className="font-bold text-slate-900">
+              Mis puntos
+            </div>
+
+            <div className="mt-1 text-xs leading-5 text-slate-500">
+              Saldo y movimientos
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("beneficios-disponibles")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                })
+            }
+            className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="mb-3 text-3xl">🎁</div>
+
+            <div className="font-bold text-slate-900">
+              Beneficios
+            </div>
+
+            <div className="mt-1 text-xs leading-5 text-slate-500">
+              Promociones disponibles
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("mis-notificaciones")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                })
+            }
+            className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="mb-3 text-3xl">🔔</div>
+
+            <div className="flex items-center gap-2 font-bold text-slate-900">
+              Avisos
+
+              {notificacionesPendientes.length > 0 && (
+                <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                  {notificacionesPendientes.length}
+                </span>
+              )}
+            </div>
+
+            <div className="mt-1 text-xs leading-5 text-slate-500">
+              Tus notificaciones
+            </div>
+          </button>
+        </section>
         {beneficios.length > 0 && (
           <div className="mt-6">
             <h3
@@ -459,10 +575,7 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
                         : `${b.valor} pts`}
                     </div>
                   </div>
-
-                  <button className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700">
-                    Usar
-                  </button>
+                  
                 </div>
               ))}
             </div>
@@ -483,7 +596,7 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
           />
         </section>
 
-        <section style={sectionCardStyle}>
+        <section id="mis-notificaciones" style={sectionCardStyle}>
           <div style={sectionHeaderStyle}>
             <h2 style={sectionTitleStyle}>Notificaciones</h2>
             <span style={pillStyle}>
@@ -523,8 +636,9 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
                     <div style={notificationTextStyle}>{notif.mensaje}</div>
                     {!item.leida && (
                       <div style={{ marginTop: 8 }}>
-                        <button
-                          type="button"
+                        <span
+                          role="button"
+                          tabIndex={0}
                           style={{
                             fontSize: 13,
                             fontWeight: 700,
@@ -537,14 +651,16 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
                           onClick={(e) => {
                             e.stopPropagation()
                             marcarLeida(item)
-                            document.getElementById('beneficios-disponibles')?.scrollIntoView({
-                              behavior: 'smooth',
-                              block: 'start',
-                            })
+                            document
+                              .getElementById('beneficios-disponibles')
+                              ?.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                              })
                           }}
-                                                  >
+                        >
                           Ver beneficio →
-                        </button>
+                        </span>
                       </div>
                     )}
 
@@ -560,7 +676,7 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
           )}
         </section>
 
-        <section style={sectionCardStyle}>
+        <section id="mis-movimientos" style={sectionCardStyle}>
           <div style={sectionHeaderStyle}>
             <h2 style={sectionTitleStyle}>Tus últimos movimientos</h2>
             <span style={pillStyle}>{ultimosMovimientos.length} visibles</span>

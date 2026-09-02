@@ -6,6 +6,7 @@ type MovimientoDB = {
   id: string
   usuario_id: string
   comercio_id: string
+  terminal_id: string | null
   promocion_id: string | null
   operacion_id: string | null
   tipo: 'carga' | 'canje'
@@ -24,6 +25,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const operacionId = String(body?.operacion_id || '').trim()
+    const terminalId = body?.terminal_id
+      ? String(body.terminal_id).trim()
+      : null
     const motivo = String(body?.motivo || '').trim()
 
     if (!operacionId) {
@@ -39,6 +43,7 @@ export async function POST(req: Request) {
         id,
         usuario_id,
         comercio_id,
+        terminal_id,
         promocion_id,
         operacion_id,
         tipo,
@@ -87,6 +92,22 @@ export async function POST(req: Request) {
         { ok: false, error: 'La operación ya fue anulada' },
         { status: 400 }
       )
+    }
+    if (terminalId) {
+      const perteneceATerminal = originalesActivos.every(
+        (m) => m.terminal_id === terminalId
+      )
+
+      if (!perteneceATerminal) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              'Esta operación pertenece a otra sucursal y no puede ser anulada desde esta terminal.',
+          },
+          { status: 403 }
+        )
+      }
     }
 
     const usuarioId = originales[0].usuario_id
@@ -154,6 +175,7 @@ export async function POST(req: Request) {
     const reversosAInsertar = originalesActivos.map((mov) => ({
       usuario_id: mov.usuario_id,
       comercio_id: mov.comercio_id,
+      terminal_id: terminalId,
       promocion_id: mov.promocion_id,
       operacion_id: operacionAnulacionId,
       tipo: mov.tipo === 'carga' ? 'canje' : 'carga',

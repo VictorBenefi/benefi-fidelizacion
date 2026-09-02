@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentComercio } from '@/lib/getCurrentComercio'
 
+
 type HistorialItem = {
   notificacion_id: string
   titulo: string
@@ -182,24 +183,65 @@ export default function ComercioNotificacionesHistorialPage() {
           {historialFiltrado.length === 0 ? (
             <div style={emptyStyle}>No hay notificaciones para mostrar.</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                maxHeight: 430,
+                overflowY: 'auto',
+                paddingRight: 6,
+              }}
+            >
               {historialFiltrado.map((item) => (
                 <div key={item.notificacion_id} style={rowCardStyle}>
-                  <div style={rowTopStyle}>
-                    <div style={{ flex: 1, minWidth: 260 }}>
-                      <div style={typeBadgeStyle(item.tipo)}>{item.tipo.toUpperCase()}</div>
-                      <div style={rowTitleStyle}>{item.titulo}</div>
-                      <div style={rowTextStyle}>{item.mensaje}</div>
-                      <div style={rowMetaStyle}>
-                        Enviada el {new Date(item.created_at).toLocaleString()}
+                  <div style={compactRowStyle}>
+                    <div style={compactMainStyle}>
+                      <div style={compactTitleRowStyle}>
+                        <div style={typeBadgeCompactStyle(item.tipo)}>
+                          {item.tipo.toUpperCase()}
+                        </div>
+
+                        <div style={compactTitleStyle}>
+                          {item.titulo}
+                        </div>
+                      </div>
+
+                      <div style={compactTextStyle}>
+                        {item.mensaje}
+                      </div>
+
+                      <div style={compactDateStyle}>
+                        {new Date(item.created_at).toLocaleString('es-AR')}
                       </div>
                     </div>
 
-                    <div style={metricsGridStyle}>
-                      <MetricBlock label='Destinatarios' value={item.destinatarios} />
-                      <MetricBlock label='Leídas' value={item.leidas} />
-                      <MetricBlock label='Pendientes' value={item.pendientes} />
-                      <MetricBlock label='Estado' value={item.activa ? 'Activa' : 'Inactiva'} />
+                    <div style={compactMetricsStyle}>
+                      <div style={compactMetricStyle}>
+                        <span style={compactMetricLabelStyle}>Destinatarios</span>
+                        <strong>{item.destinatarios}</strong>
+                      </div>
+
+                      <div style={compactMetricStyle}>
+                        <span style={compactMetricLabelStyle}>Leídas</span>
+                        <strong>{item.leidas}</strong>
+                      </div>
+
+                      <div style={compactMetricStyle}>
+                        <span style={compactMetricLabelStyle}>Pendientes</span>
+                        <strong>{item.pendientes}</strong>
+                      </div>
+
+                      <div style={compactMetricStyle}>
+                        <span style={compactMetricLabelStyle}>Estado</span>
+                        <strong
+                          style={{
+                            color: item.activa ? '#166534' : '#991b1b',
+                          }}
+                        >
+                          {item.activa ? 'Activa' : 'Inactiva'}
+                        </strong>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -209,7 +251,7 @@ export default function ComercioNotificacionesHistorialPage() {
         </div>
       </div>
     </div>
-  )
+)
 }
 
 function SummaryCard({
@@ -406,9 +448,79 @@ const emptyStyle: React.CSSProperties = {
 
 const rowCardStyle: React.CSSProperties = {
   border: '1px solid #e5e7eb',
-  borderRadius: 18,
+  borderRadius: 14,
   background: '#ffffff',
-  padding: 18,
+  padding: '12px 14px',
+}
+
+const compactRowStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 18,
+  flexWrap: 'wrap',
+}
+
+const compactMainStyle: React.CSSProperties = {
+  flex: 1,
+  minWidth: 280,
+}
+
+const compactTitleRowStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  flexWrap: 'wrap',
+  marginBottom: 5,
+}
+
+const compactTitleStyle: React.CSSProperties = {
+  fontSize: 16,
+  fontWeight: 800,
+  color: '#0f172a',
+}
+
+const compactTextStyle: React.CSSProperties = {
+  fontSize: 14,
+  lineHeight: '20px',
+  color: '#475569',
+  marginBottom: 5,
+}
+
+const compactDateStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: '#64748b',
+}
+
+const compactMetricsStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 22,
+  flexWrap: 'wrap',
+}
+
+const compactMetricStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  minWidth: 72,
+}
+
+const compactMetricLabelStyle: React.CSSProperties = {
+  fontSize: 11,
+  color: '#64748b',
+  fontWeight: 700,
+}
+
+function typeBadgeCompactStyle(tipo: string): React.CSSProperties {
+  const base = typeBadgeStyle(tipo)
+
+  return {
+    ...base,
+    marginBottom: 0,
+    padding: '4px 8px',
+    fontSize: 10,
+  }
 }
 
 const rowTopStyle: React.CSSProperties = {

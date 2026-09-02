@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Bell } from "lucide-react";
 import ComercioSelector from "@/components/ComercioSelector";
 
 type MenuItem = {
@@ -40,7 +41,7 @@ const menu: MenuItem[] = [
     description: "Resumen del comercio",
   },
   {
-  href: "/terminal",
+  href: "/comercio/terminal",
   label: "Terminal",
   description: "Carga, canje y anulaciones",
   },
@@ -65,15 +66,25 @@ const menu: MenuItem[] = [
     description: "Enviar mensajes a usuarios",
   },
   {
-    href: "/comercio/movimientos",
-    label: "Movimientos",
-    description: "Historial del comercio",
-  },
-  {
-    href: "/comercio/notificaciones/historial",
-    label: "Historial",
-    description: "Campañas enviadas y lecturas",
-  },
+  href: "/comercio/movimientos",
+  label: "Movimientos",
+  description: "Historial del comercio",
+},
+{
+  href: "/comercio/pedidos",
+  label: "Pedidos",
+  description: "Gestionar pedidos del catálogo",
+},
+{
+  href: "/comercio/catalogo",
+  label: "Catálogo",
+  description: "Productos y categorías",
+},
+{
+  href: "/comercio/notificaciones/historial",
+  label: "Historial",
+  description: "Campañas enviadas y lecturas",
+},
 ];
 
 const neutralSidebarColor = "#111827";
@@ -105,6 +116,10 @@ export default function SidebarLayout({
   const [campaign, setCampaign] = useState<CampaignSettings | null>(null);
   const [campaignLoading, setCampaignLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pedidosNuevos, setPedidosNuevos] = useState(0);
+  const [panelPedidosOpen, setPanelPedidosOpen] = useState(false);
+  const [listaPedidosNuevos, setListaPedidosNuevos] = useState<any[]>([]);
+  const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -158,6 +173,137 @@ export default function SidebarLayout({
       mounted = false;
     };
   }, [])
+
+  useEffect(() => {
+  let mounted = true;
+
+  async function cargarConfiguracionCatalogo() {
+    try {
+      const comercioId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("comercio_id") ||
+            localStorage.getItem("current_comercio_id")
+          : null;
+
+      if (!comercioId) {
+        if (mounted) {
+          setMostrarCatalogo(false);
+        }
+        return;
+      }
+
+      const res = await fetch(
+        `/api/admin/catalogo/configuracion?comercio_id=${comercioId}`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (mounted) {
+          setMostrarCatalogo(false);
+        }
+        return;
+      }
+
+      const configuracion = data?.configuracion;
+
+      const puedeAdministrar =
+        configuracion?.habilitado === true &&
+        (configuracion?.gestion_modo === "comercio" ||
+          configuracion?.gestion_modo === "ambos");
+
+      if (mounted) {
+        setMostrarCatalogo(puedeAdministrar);
+      }
+    } catch (error) {
+      console.error(
+        "No se pudo cargar la configuración del catálogo",
+        error
+      );
+
+      if (mounted) {
+        setMostrarCatalogo(false);
+      }
+    }
+  }
+
+  cargarConfiguracionCatalogo();
+
+  return () => {
+    mounted = false;
+  };
+}, [pathname]);
+
+  useEffect(() => {
+  let mounted = true;
+
+  async function cargarPedidosNuevos() {
+    try {
+      const comercioId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("comercio_id")
+          : null;
+
+      if (!comercioId) {
+        if (mounted) {
+          setPedidosNuevos(0);
+        }
+        return;
+      }
+
+      const res = await fetch(
+        `/api/comercio/catalogo/pedidos?comercio_id=${comercioId}`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return;
+      }
+
+      const pedidos = Array.isArray(data?.pedidos)
+        ? data.pedidos
+        : [];
+
+      const nuevos = pedidos.filter(
+        (pedido: {
+          estado?: string;
+          visto_comercio?: boolean;
+        }) =>
+          pedido.estado === "nuevo" &&
+          pedido.visto_comercio !== true
+      );
+
+      if (mounted) {
+        setPedidosNuevos(nuevos.length);
+        setListaPedidosNuevos(nuevos);
+      }
+    } catch (error) {
+      console.error(
+        "No se pudieron cargar los pedidos nuevos",
+        error
+      );
+    }
+  }
+
+  cargarPedidosNuevos();
+
+  const intervalo = window.setInterval(
+    cargarPedidosNuevos,
+    30000
+  );
+
+  return () => {
+    mounted = false;
+    window.clearInterval(intervalo);
+  };
+}, [pathname]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -273,7 +419,15 @@ export default function SidebarLayout({
             </div>
 
             <nav className="flex flex-col gap-2.5">
-              {menu.map((item) => {
+              {menu
+              .filter((item) => {
+                if (item.href === "/comercio/catalogo") {
+                  return mostrarCatalogo;
+                }
+
+                return true;
+              })
+              .map((item) => {
                 const active = isMenuItemActive(pathname, item.href);
 
                 return (
@@ -338,7 +492,86 @@ export default function SidebarLayout({
           </div>
         </aside>
 
-        <main className="min-w-0 bg-[var(--portal-bg)] pt-16 lg:pt-0">
+        <main className="relative min-w-0 bg-[var(--portal-bg)] pt-16 lg:pt-0">
+          <div className="absolute right-6 top-4 z-40 hidden lg:block">
+            <button
+              type="button"
+              onClick={() => setPanelPedidosOpen((prev) => !prev)}
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-amber-300 bg-amber-100 text-amber-600 shadow-sm transition hover:bg-amber-200 hover:text-amber-700"
+              aria-label="Notificaciones de pedidos"
+            >
+              <Bell size={22} strokeWidth={2.2} />
+                {pedidosNuevos > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white shadow">
+                    {pedidosNuevos > 99 ? "99+" : pedidosNuevos}
+                  </span>
+                )}
+            </button>
+            {panelPedidosOpen && (
+            <div className="absolute right-0 top-14 w-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold text-slate-900">
+                    Nuevos pedidos
+                  </div>
+
+                  <div className="mt-1 text-xs text-slate-500">
+                    Pedidos pendientes de revisión
+                  </div>
+                </div>
+
+                <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
+                  {pedidosNuevos}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {listaPedidosNuevos.length > 0 ? (
+                  listaPedidosNuevos.map((pedido) => (
+                    <button
+                      key={pedido.id}
+                      type="button"
+                      onClick={() => {
+                        setPanelPedidosOpen(false);
+                        router.push(`/comercio/pedidos/${pedido.id}`);
+                      }}
+                      className="w-full cursor-pointer rounded-xl border border-blue-100 bg-blue-50 p-3 text-left transition hover:bg-blue-100"
+                    >
+                      <div className="text-sm font-bold text-slate-900">
+                        Pedido #{pedido.numero_pedido}
+                      </div>
+
+                      <div className="mt-1 text-xs text-slate-600">
+                        {pedido.usuario?.nombre_completo ||
+                          pedido.nombre_receptor ||
+                          "Cliente"}
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <span className="text-xs font-medium text-blue-700">
+                          Ver pedido →
+                        </span>
+
+                        <span className="text-sm font-bold text-slate-900">
+                          {new Intl.NumberFormat("es-AR", {
+                            style: "currency",
+                            currency: "ARS",
+                            maximumFractionDigits: 0,
+                          }).format(Number(pedido.total_pesos || 0))}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-500">
+                    No hay pedidos nuevos.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          </div>
+
           {children}
         </main>
       </div>

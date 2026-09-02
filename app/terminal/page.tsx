@@ -82,6 +82,7 @@ export default function Home() {
   const [fechaDesdeComercio, setFechaDesdeComercio] = useState('')
   const [fechaHastaComercio, setFechaHastaComercio] = useState('')
   const [mostrarExportaciones, setMostrarExportaciones] = useState(false)
+  const [detalleOperacionId, setDetalleOperacionId] = useState<string | null>(null)
   const [terminalActual, setTerminalActual] = useState<{
   id: string
   comercio_id: string
@@ -258,6 +259,7 @@ useEffect(() => {
         body: JSON.stringify({
           usuario_id: usuarioId,
           comercio_id: comercioId,
+          terminal_id: terminalActual?.id,
         }),
       })
 
@@ -589,6 +591,7 @@ const calcularPuntos = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           operacion_id: operacionAAnular.operacion_id,
+          terminal_id: terminalActual?.id,
           motivo: motivoAnulacion.trim(),
         }),
       })
@@ -1478,91 +1481,95 @@ return (
                               alignItems: 'center',
                             }}
                           >
-                            <details>
-                              <summary
+                            <div style={{ position: 'relative' }}>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDetalleOperacionId((actual) =>
+                                    actual === op.operacion_id ? null : op.operacion_id
+                                  )
+                                }
                                 style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  padding: 0,
                                   cursor: 'pointer',
                                   fontWeight: 700,
                                   color: '#2563eb',
-                                  listStyle: 'none',
                                   fontSize: 13,
                                 }}
                               >
-                                Ver
-                              </summary>
+                                {detalleOperacionId === op.operacion_id ? 'Cerrar' : 'Ver'}
+                              </button>
 
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  zIndex: 20,
-                                  width: 300,
-                                  marginTop: 8,
-                                  padding: 14,
-                                  background: '#fff',
-                                  border: '1px solid #e2e8f0',
-                                  borderRadius: 12,
-                                  boxShadow:
-                                    '0 12px 30px rgba(15,23,42,0.14)',
-                                }}
-                              >
-                                {op.observaciones && (
-                                  <div
-                                    style={{
-                                      marginBottom: 12,
-                                      fontSize: 13,
-                                      color: '#475569',
-                                    }}
-                                  >
-                                    <strong>Observaciones:</strong>{' '}
-                                    {op.observaciones}
-                                  </div>
-                                )}
-
+                              {detalleOperacionId === op.operacion_id && (
                                 <div
                                   style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 8,
+                                    position: 'absolute',
+                                    zIndex: 20,
+                                    right: 0,
+                                    top: 24,
+                                    width: 300,
+                                    padding: 14,
+                                    background: '#fff',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 12,
+                                    boxShadow: '0 12px 30px rgba(15,23,42,0.14)',
                                   }}
                                 >
-                                  {op.movimientos.map((mov) => (
+                                  {op.observaciones && (
                                     <div
-                                      key={mov.id}
                                       style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        gap: 12,
-                                        paddingBottom: 6,
-                                        borderBottom:
-                                          '1px dashed #e2e8f0',
-                                        fontSize: 12,
+                                        marginBottom: 12,
+                                        fontSize: 13,
+                                        color: '#475569',
                                       }}
                                     >
-                                      <span>
-                                        {mov.tipo.toUpperCase()}
-                                        {mov.es_reverso
-                                          ? ' · anulación'
-                                          : ''}
-                                      </span>
+                                      <strong>Observaciones:</strong> {op.observaciones}
+                                    </div>
+                                  )}
 
-                                      <strong
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: 8,
+                                    }}
+                                  >
+                                    {op.movimientos.map((mov) => (
+                                      <div
+                                        key={mov.id}
                                         style={{
-                                          color:
-                                            mov.tipo === 'carga'
-                                              ? '#166534'
-                                              : '#991b1b',
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          gap: 12,
+                                          paddingBottom: 6,
+                                          borderBottom: '1px dashed #e2e8f0',
+                                          fontSize: 12,
                                         }}
                                       >
-                                        {mov.tipo === 'carga'
-                                          ? '+'
-                                          : '-'}
-                                        {mov.puntos}
-                                      </strong>
-                                    </div>
-                                  ))}
+                                        <span>
+                                          {mov.tipo.toUpperCase()}
+                                          {mov.es_reverso ? ' · anulación' : ''}
+                                        </span>
+
+                                        <strong
+                                          style={{
+                                            color:
+                                              mov.tipo === 'carga'
+                                                ? '#166534'
+                                                : '#991b1b',
+                                          }}
+                                        >
+                                          {mov.tipo === 'carga' ? '+' : '-'}
+                                          {mov.puntos}
+                                        </strong>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
-                            </details>
+                              )}
+                            </div>
 
                             {op.puede_anular && (
                               <button

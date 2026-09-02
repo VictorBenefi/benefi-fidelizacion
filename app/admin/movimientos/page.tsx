@@ -26,27 +26,36 @@ useEffect(() => {
     const data = await res.json();
     setMovimientos(data || []);
   }
- async function anularMovimiento(movimiento: any) {
-  const confirmar = confirm("¿Seguro que querés anular este movimiento?");
+async function anularMovimiento(movimiento: any) {
+  const confirmar = confirm("¿Seguro que querés anular esta operación?");
   if (!confirmar) return;
 
-  const res = await fetch("/api/admin/movimientos/anular", {
+  if (!movimiento?.operacion_id) {
+    alert("Este movimiento no tiene una operación asociada.");
+    return;
+  }
+
+  const res = await fetch("/api/operaciones/anular", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ movimiento }),
+    body: JSON.stringify({
+      operacion_id: movimiento.operacion_id,
+      motivo: "Anulación realizada desde BackOffice administrador",
+    }),
   });
 
   const data = await res.json();
 
-  if (!res.ok) {
-    alert(data?.error || "Error al anular movimiento");
+  if (!res.ok || !data.ok) {
+    alert(data?.error || "Error al anular operación");
     return;
   }
 
   await fetchMovimientos();
 }
+
 function formatearFecha(fecha: string) {
   if (!fecha) return "";
 
@@ -67,6 +76,7 @@ function exportarMovimientos() {
   const rows = movimientosFiltrados.map((m) => ({
     Fecha: formatearFecha(m.created_at),
     Comercio: m.comercios?.nombre_fantasia || "",
+    Sucursal: m.terminales?.nombre_sucursal || "",
     Cliente: m.usuarios?.nombre_completo || "",
     DNI: m.usuarios?.dni || "",
     Compra: m.monto_compra || 0,
@@ -118,6 +128,7 @@ const totalPuntosCanjeados = movimientos
   .reduce((acc, m) => acc + Number(m.puntos || 0), 0);
   
 const movimientosFiltrados = movimientos.filter((m) => {
+  if (m.es_reverso === true) return false;
   const texto = `${m.usuarios?.nombre_completo || ""} ${m.usuarios?.dni || ""}`
     .toLowerCase()
     .includes(busqueda.toLowerCase());
@@ -239,14 +250,15 @@ const movimientosFiltrados = movimientos.filter((m) => {
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
-              <th className="p-3">Fecha</th>
-              <th className="p-3">Comercio</th>
-              <th className="p-3">Cliente</th>
-              <th className="p-3">DNI</th>
-              <th className="p-3">Compra</th>
-              <th className="p-3">Tipo</th>
-              <th className="p-3">Puntos</th>
-              <th className="p-3">Ticket</th>
+              <th className="p-3 text-left">Fecha</th>
+              <th className="p-3 text-left">Comercio</th>
+              <th className="p-3 text-left">Sucursal</th>
+              <th className="p-3 text-left">Cliente</th>
+              <th className="p-3 text-left">DNI</th>
+              <th className="p-3 text-left">Compra</th>
+              <th className="p-3 text-left">Tipo</th>
+              <th className="p-3 text-left">Puntos</th>
+              <th className="p-3 text-left">Ticket</th>
               <th className="p-3 text-left">Estado</th>
               <th className="p-3 text-left">Acciones</th>
             </tr>
@@ -259,10 +271,15 @@ const movimientosFiltrados = movimientos.filter((m) => {
                   {new Date(m.created_at).toLocaleString()}
                 </td>
                 <td className="p-3">
-                  {m.comercios?.nombre_fantasia}
+                  {m.comercios?.nombre_fantasia || "-"}
                 </td>
+
                 <td className="p-3">
-                  {m.usuarios?.nombre_completo}
+                  {m.terminales?.nombre_sucursal || "-"}
+                </td>
+
+                <td className="p-3">
+                  {m.usuarios?.nombre_completo || "-"}
                 </td>
                 <td className="p-3">
                   {m.usuarios?.dni}
