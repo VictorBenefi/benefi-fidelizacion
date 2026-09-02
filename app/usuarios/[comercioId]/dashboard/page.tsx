@@ -382,38 +382,38 @@ const esRegistroNuevo = searchParams.get('nuevo') === '1'
                       if (!notif) return null
 
                      return (
-  <button
-    key={item.id}
-    type="button"
-    onClick={() => marcarLeida(item)}
-    style={{
-      ...notificationMiniStyle,
-      background: item.leida ? '#ffffff' : '#eff6ff',
-      borderColor: item.leida ? '#e5e7eb' : '#bfdbfe',
-      textAlign: 'left',
-    }}
-  >
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <strong>{notif.titulo}</strong>
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => marcarLeida(item)}
+                        style={{
+                          ...notificationMiniStyle,
+                          background: item.leida ? '#ffffff' : '#eff6ff',
+                          borderColor: item.leida ? '#e5e7eb' : '#bfdbfe',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong>{notif.titulo}</strong>
 
-      {!item.leida && (
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: '#2563eb',
-          }}
-        >
-          Marcar leída
-        </span>
-      )}
-    </div>
+                          {!item.leida && (
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: '#2563eb',
+                              }}
+                            >
+                              Marcar leída
+                            </span>
+                          )}
+                        </div>
 
-    <div style={{ fontSize: 13, marginTop: 4, opacity: 0.8 }}>
-      {notif.mensaje}
-    </div>
-  </button>
-)
+                        <div style={{ fontSize: 13, marginTop: 4, opacity: 0.8 }}>
+                          {notif.mensaje}
+                        </div>
+                      </button>
+                      )
                     })}
                   </div>
                 )}
@@ -919,6 +919,9 @@ const logoutButtonStyle: React.CSSProperties = {
   cursor: 'pointer',
   fontWeight: 700,
   color: '#0f172a',
+  whiteSpace: 'nowrap',
+  minWidth: 120,
+  flexShrink: 0,
 }
 
 const notificationPanelStyle: React.CSSProperties = {

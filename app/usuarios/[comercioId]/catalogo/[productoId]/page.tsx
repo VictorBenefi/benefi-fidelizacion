@@ -311,32 +311,35 @@ export default function ProductoDetallePage() {
                     </div>
 
                     <button
-                    type="button"
-                    onClick={() => {
-                    agregarAlCarrito({
-                        producto_id: producto.id,
-                        comercio_id: comercioId,
-                        nombre: producto.nombre,
-                        imagen_url: producto.imagen_url,
-                        cantidad,
-                        observacion: observacion.trim() || null,
-                        precio_pesos: Number(producto.precio_pesos),
-                        precio_puntos: Number(producto.precio_puntos),
-                    });
+                      type="button"
+                      onClick={() => {
+                        agregarAlCarrito({
+                          producto_id: producto.id,
+                          comercio_id: comercioId,
+                          nombre: producto.nombre,
+                          imagen_url: producto.imagen_url,
+                          cantidad,
+                          observacion: observacion.trim() || null,
+                          precio_pesos: Number(producto.precio_pesos),
+                          precio_puntos: Number(producto.precio_puntos),
+                        });
 
-                    setMensajeCarrito("Producto agregado al pedido.");
+                        setMensajeCarrito("Producto agregado al pedido.");
 
-                    setTimeout(() => {
-                      confirmacionRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    }, 100);
-                    }}
-                  
-                    className="w-full cursor-pointer rounded-xl bg-[#C1121F] px-5 py-4 text-base font-bold text-white transition hover:opacity-90"
+                        setTimeout(() => {
+                          confirmacionRef.current?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                        }, 100);
+                      }}
+                      className={`w-full cursor-pointer rounded-xl px-5 py-4 text-base font-bold text-white transition-all duration-200 ${
+                        mensajeCarrito
+                          ? "bg-[#8F0D17]"
+                          : "bg-[#C1121F] hover:bg-[#A8101B]"
+                      }`}
                     >
-                    Agregar al pedido
+                      {mensajeCarrito ? "✓ Agregado al pedido" : "Agregar al pedido"}
                     </button>
                     
                     {mensajeCarrito && (
