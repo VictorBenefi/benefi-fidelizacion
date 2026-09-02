@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { agregarAlCarrito } from "@/lib/catalogoCarrito";
 
@@ -40,6 +40,7 @@ export default function ProductoDetallePage() {
   const [cantidad, setCantidad] = useState(1);
   const [observacion, setObservacion] = useState("");
   const [mensajeCarrito, setMensajeCarrito] = useState("");
+  const confirmacionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!comercioId || !productoId) return;
@@ -324,16 +325,27 @@ export default function ProductoDetallePage() {
                     });
 
                     setMensajeCarrito("Producto agregado al pedido.");
+
+                    setTimeout(() => {
+                      confirmacionRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }, 100);
                     }}
+                  
                     className="w-full cursor-pointer rounded-xl bg-[#C1121F] px-5 py-4 text-base font-bold text-white transition hover:opacity-90"
                     >
                     Agregar al pedido
                     </button>
                     
                     {mensajeCarrito && (
-                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700">
+                      <div
+                        ref={confirmacionRef}
+                        className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700"
+                      >
                         {mensajeCarrito}
-                    </div>
+                      </div>
                     )}
                     
 
