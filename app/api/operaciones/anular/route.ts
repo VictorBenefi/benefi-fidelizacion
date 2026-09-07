@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getComercioSessionFromRequest } from '@/lib/auth/comercioSession'
 
 type MovimientoDB = {
   id: string
@@ -23,6 +24,19 @@ type MovimientoDB = {
 
 export async function POST(req: Request) {
   try {
+    const session =
+      getComercioSessionFromRequest(req)
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Sesión de comercio no válida.',
+        },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
     const operacionId = String(body?.operacion_id || '').trim()
     const terminalId = body?.terminal_id
@@ -59,6 +73,7 @@ export async function POST(req: Request) {
       `)
       .eq('operacion_id', operacionId)
       .order('fecha', { ascending: true })
+      .eq('operacion_id', operacionId)
 
     if (movimientosError) {
       return NextResponse.json(
@@ -225,6 +240,7 @@ export async function POST(req: Request) {
           anulado_en: fechaAhora,
         })
         .eq('id', original.id)
+        .eq('comercio_id', session.comercio_id)
 
       if (updateError) {
         return NextResponse.json(

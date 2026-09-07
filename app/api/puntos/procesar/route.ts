@@ -1,9 +1,23 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getComercioSessionFromRequest } from '@/lib/auth/comercioSession'
 
 export async function POST(req: Request) {
   try {
+    const session =
+      getComercioSessionFromRequest(req)
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Sesión de comercio no válida.',
+        },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
 
     const {
@@ -26,9 +40,20 @@ export async function POST(req: Request) {
     }
 
     if (!comercio_id) {
+          return NextResponse.json(
+            { ok: false, error: 'comercio_id es obligatorio' },
+            { status: 400 }
+          )
+        }
+
+        if (session.comercio_id !== comercio_id) {
       return NextResponse.json(
-        { ok: false, error: 'comercio_id es obligatorio' },
-        { status: 400 }
+        {
+          ok: false,
+          error:
+            'No tenés permiso para operar sobre este comercio.',
+        },
+        { status: 403 }
       )
     }
    
@@ -39,7 +64,7 @@ export async function POST(req: Request) {
         .from('terminales')
         .select('id, comercio_id, nombre_sucursal, activa')
         .eq('id', terminal_id)
-        .eq('comercio_id', comercio_id)
+        .eq('comercio_id', session.comercio_id)
         .eq('activa', true)
         .maybeSingle()
 
@@ -70,7 +95,38 @@ export async function POST(req: Request) {
         { status: 400 }
       )
     }
+    const { data: usuarioComercio, error: usuarioComercioError } =
+      await supabaseAdmin
+        .from('usuarios_comercios')
+        .select('usuario_id, comercio_id')
+        .eq('usuario_id', usuario_id)
+        .eq('comercio_id', session.comercio_id)
+        .maybeSingle()
 
+    if (usuarioComercioError) {
+      console.error(
+        'Error validando usuario del comercio:',
+        usuarioComercioError
+      )
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'No se pudo validar el usuario.',
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!usuarioComercio) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'El usuario no pertenece a este comercio.',
+        },
+        { status: 403 }
+      )
+    }
      const importe = Number(monto_compra || 0)
      const canje = Number(puntos_canje || 0)
      const ticketFinal = nro_ticket || `TCK-${Date.now()}`
@@ -93,7 +149,7 @@ export async function POST(req: Request) {
       .from('promociones')
       .select('*')
       .eq('id', promocion_id)
-      .eq('comercio_id', comercio_id)
+      .eq('comercio_id', session.comercio_id)
       .eq('activa', true)
       .single()
 
@@ -109,7 +165,7 @@ export async function POST(req: Request) {
       .from('saldos')
       .select('saldo')
       .eq('usuario_id', usuario_id)
-      .eq('comercio_id', comercio_id)
+      .eq('comercio_id', session.comercio_id)
       .maybeSingle()
 
     if (saldoError) {
@@ -184,7 +240,7 @@ if (puntosGenerados <= 0) {
     if (canje > 0) {
       movimientosAInsertar.push({
         usuario_id,
-        comercio_id,
+        comercio_id: session.comercio_id,
         terminal_id: terminal_id || null,
         origen: origenFinal,
         promocion_id: null,
@@ -206,7 +262,7 @@ if (puntosGenerados <= 0) {
 
     movimientosAInsertar.push({
       usuario_id,
-      comercio_id,
+      comercio_id: session.comercio_id,
       terminal_id: terminal_id || null,
       origen: origenFinal,
       promocion_id,
@@ -242,7 +298,7 @@ if (puntosGenerados <= 0) {
       .from('saldos')
       .select('saldo')
       .eq('usuario_id', usuario_id)
-      .eq('comercio_id', comercio_id)
+      .eq('comercio_id', session.comercio_id)
       .maybeSingle()
 
     if (saldoFinalError) {

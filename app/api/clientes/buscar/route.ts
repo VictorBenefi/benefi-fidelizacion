@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getComercioSessionFromRequest } from "@/lib/auth/comercioSession";
 
 export async function POST(req: Request) {
   try {
+  const session =
+      getComercioSessionFromRequest(req);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Sesión de comercio no válida.",
+        },
+        { status: 401 }
+      );
+    }
     const body = await req.json();
     const dni = String(body?.dni || "").trim();
     const comercio_id = body?.comercio_id;
@@ -13,6 +25,16 @@ export async function POST(req: Request) {
 
     if (!comercio_id) {
       return NextResponse.json({ error: "Falta comercio_id" }, { status: 400 });
+    }
+
+    if (session.comercio_id !== comercio_id) {
+      return NextResponse.json(
+        {
+          error:
+            "No tenés permiso para acceder a este comercio.",
+        },
+        { status: 403 }
+      );
     }
 
     const { data, error } = await supabaseAdmin
@@ -28,7 +50,7 @@ export async function POST(req: Request) {
           provincia
         )
       `)
-      .eq("comercio_id", comercio_id);
+      .eq("comercio_id", session.comercio_id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -52,7 +74,7 @@ export async function POST(req: Request) {
       .from("movimientos_puntos")
       .select("tipo, puntos, estado")
       .eq("usuario_id", usuario.id)
-      .eq("comercio_id", comercio_id);
+      .eq("comercio_id", session.comercio_id)
 
     if (errorMovimientos) {
       return NextResponse.json(

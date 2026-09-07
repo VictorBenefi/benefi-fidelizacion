@@ -36,6 +36,11 @@ export default function ActivarNotificaciones() {
       } = await supabaseClient.auth.getUser()
 
       if (!user) return
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession()
+
+      if (!session?.access_token) return
 
       const { data: usuario } = await supabaseClient
         .from('usuarios')
@@ -74,12 +79,13 @@ export default function ActivarNotificaciones() {
         subscription.toJSON()
 
       const response = await fetch(
-        '/api/push/subscribe',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      '/api/push/subscribe',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
           body: JSON.stringify({
             usuario_id: usuario.id,
             comercio_id: comercioId,

@@ -45,18 +45,28 @@ export default function ComercioMovimientosPage() {
 function formatearFecha(fecha: string) {
   if (!fecha) return "";
 
-  const d = new Date(fecha);
+  try {
+    const fechaNormalizada =
+      fecha.includes("Z") ||
+      fecha.includes("+")
+        ? fecha
+        : `${fecha.replace(" ", "T")}Z`;
 
-  return d
-    .toLocaleString("es-AR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })
-    .replace(",", "");
+    return new Date(fechaNormalizada)
+      .toLocaleString("es-AR", {
+        timeZone: "America/Argentina/Salta",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      })
+      .replace(",", "");
+  } catch {
+    return fecha;
+  }
 }
 
 function exportarMovimientos() {
@@ -205,7 +215,7 @@ function exportarMovimientos() {
 
         <button
           onClick={exportarMovimientos}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+          className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-white"
         >
           Exportar
         </button>
@@ -231,7 +241,7 @@ function exportarMovimientos() {
             {movimientosFiltrados.map((m) => (
               <tr key={m.id} className="border-t">
                 <td className="p-3">
-                  {m.created_at ? new Date(m.created_at).toLocaleString() : "-"}
+                  {m.created_at ? formatearFecha(m.created_at) : "-"}
                 </td>
 
                 <td className="p-3">

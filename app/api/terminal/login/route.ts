@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import {
+  createTerminalSessionToken,
+  terminalSessionCookieName,
+  terminalSessionDuration,
+} from '@/lib/auth/terminalSession'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,14 +15,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const comercioId = String(body.comercio_id || '').trim()
+    const terminalId = String(body.terminal_id || '').trim()
     const pin = String(body.pin || '').trim()
 
-    if (!comercioId) {
+    if (!terminalId) {
       return NextResponse.json(
         {
           ok: false,
-          error: 'No se informó el comercio',
+          error: 'No se informó la terminal',
         },
         { status: 400 }
       )
@@ -34,12 +39,12 @@ export async function POST(request: Request) {
     }
 
     const { data: terminal, error } = await supabaseAdmin
-      .from('terminales')
-      .select('id, comercio_id, nombre_sucursal, activa')
-      .eq('comercio_id', comercioId)
-      .eq('pin', pin)
-      .eq('activa', true)
-      .maybeSingle()
+    .from('terminales')
+    .select('id, comercio_id, nombre_sucursal, activa')
+    .eq('id', terminalId)
+    .eq('pin', pin)
+    .eq('activa', true)
+    .maybeSingle()
 
     if (error) {
       console.error('Error buscando terminal:', error)
@@ -63,7 +68,12 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({
+    const sessionToken = createTerminalSessionToken({
+      terminal_id: terminal.id,
+      comercio_id: terminal.comercio_id,
+    })
+
+    const response = NextResponse.json({
       ok: true,
       terminal: {
         id: terminal.id,
@@ -71,6 +81,18 @@ export async function POST(request: Request) {
         nombre_sucursal: terminal.nombre_sucursal,
       },
     })
+
+    response.cookies.set({
+      name: terminalSessionCookieName,
+      value: sessionToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: terminalSessionDuration,
+    })
+
+    return response
   } catch (error) {
     console.error('Error login terminal:', error)
 

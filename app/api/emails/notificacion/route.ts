@@ -1,8 +1,82 @@
 import { NextResponse } from "next/server";
+import { getComercioSessionFromRequest } from "@/lib/auth/comercioSession";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
   try {
-    const { to, nombre, comercio, titulo, mensaje, comercio_id } = await req.json();
+    const session = getComercioSessionFromRequest(req);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Sesión de comercio no válida.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const { to, nombre, comercio, titulo, mensaje, comercio_id } =
+      await req.json();
+
+    if (!comercio_id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Falta comercio_id.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (session.comercio_id !== comercio_id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "No tenés permiso para enviar notificaciones desde este comercio.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const { data: usuarioComercio, error: usuarioComercioError } =
+    await supabaseAdmin
+      .from("usuarios_comercios")
+      .select(`
+        usuario_id,
+        usuarios!inner (
+          nombre_completo,
+          email
+        )
+      `)
+      .eq("comercio_id", session.comercio_id)
+      .eq("usuarios.email", to)
+      .maybeSingle();
+
+    if (usuarioComercioError) {
+      console.error(
+        "Error validando destinatario de la notificación:",
+        usuarioComercioError
+      );
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "No se pudo validar el destinatario.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!usuarioComercio) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "El destinatario no pertenece a este comercio.",
+        },
+        { status: 403 }
+      );
+    }
 
     const res = await fetch("https://send.api.mailtrap.io/api/send", {
       method: "POST",

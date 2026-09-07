@@ -26,8 +26,15 @@ export async function getUserComercios(): Promise<ComercioActivo[]> {
   console.log('AUTH USER ID EN SESIÓN:', authUserId)
 
   const res = await fetch(
-    `/api/auth/comercios-por-auth?auth_user_id=${authUserId}`
-  )
+  "/api/auth/comercios-por-auth",
+  {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    cache: "no-store",
+  }
+)
 
   const raw = await res.text()
   console.log('RAW API RESPONSE:', raw)

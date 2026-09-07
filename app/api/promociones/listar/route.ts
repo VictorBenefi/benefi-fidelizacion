@@ -1,8 +1,21 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getComercioSessionFromRequest } from "@/lib/auth/comercioSession";
 
 export async function POST(req: Request) {
   try {
+    const session =
+      getComercioSessionFromRequest(req);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Sesión de comercio no válida.",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const comercio_id = body?.comercio_id;
 
@@ -13,28 +26,56 @@ export async function POST(req: Request) {
       );
     }
 
-    const hoy = new Date().toISOString().split("T")[0];
-    const { data, error } = await supabaseAdmin
-    .from("promociones")
-    .select("*")
-    .eq("comercio_id", comercio_id)
-    .eq("activa", true)
-    .lte("fecha_inicio", hoy)
-    .gte("fecha_fin", hoy)
-    .order("created_at", { ascending: false });
+    if (session.comercio_id !== comercio_id) {
+      return NextResponse.json(
+        {
+          error:
+            "No tenés permiso para acceder a este comercio.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const hoy =
+      new Date().toISOString().split("T")[0];
+
+    const { data, error } =
+      await supabaseAdmin
+        .from("promociones")
+        .select("*")
+        .eq(
+          "comercio_id",
+          session.comercio_id
+        )
+        .eq("activa", true)
+        .lte("fecha_inicio", hoy)
+        .gte("fecha_fin", hoy)
+        .order("created_at", {
+          ascending: false,
+        });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
-    ok: true,
-    promociones: data || [],
-  });
+      ok: true,
+      promociones: data || [],
+    });
   } catch (error) {
-    console.error("Error listando promociones:", error);
+    console.error(
+      "Error listando promociones:",
+      error
+    );
+
     return NextResponse.json(
-      { error: "Ocurrió un error al listar promociones" },
+      {
+        error:
+          "Ocurrió un error al listar promociones",
+      },
       { status: 500 }
     );
   }

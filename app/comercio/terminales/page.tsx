@@ -26,6 +26,7 @@ const [nombreSucursalEditar, setNombreSucursalEditar] = useState('')
 const [pinEditar, setPinEditar] = useState('')
 const [activaEditar, setActivaEditar] = useState(true)
 const [guardandoEdicion, setGuardandoEdicion] = useState(false)
+const [terminalAcceso, setTerminalAcceso] = useState<Terminal | null>(null)
 
   useEffect(() => {
     async function cargarComercio() {
@@ -392,7 +393,13 @@ const guardarEdicionTerminal = async () => {
                     </span>
                   </div>
 
-                  <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => abrirEditarTerminal(terminal)}
@@ -406,6 +413,21 @@ const guardarEdicionTerminal = async () => {
                       }}
                     >
                       Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTerminalAcceso(terminal)}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: '#7c3aed',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      Acceso
                     </button>
                   </div>
                 </div>
@@ -604,6 +626,159 @@ const guardarEdicionTerminal = async () => {
                 </div>
                 </div>
             </div>
+            )}
+
+            {terminalAcceso && (
+              <div
+                onClick={() => setTerminalAcceso(null)}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 1000,
+                  background: 'rgba(15, 23, 42, 0.55)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 16,
+                }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: '100%',
+                    maxWidth: 560,
+                    background: '#ffffff',
+                    borderRadius: 20,
+                    padding: 24,
+                    boxShadow: '0 24px 60px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 12,
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: '#7c3aed',
+                          textTransform: 'uppercase',
+                          marginBottom: 4,
+                        }}
+                      >
+                        Acceso a terminal
+                      </div>
+
+                      <h2
+                        style={{
+                          margin: 0,
+                          fontSize: 24,
+                          color: '#0f172a',
+                        }}
+                      >
+                        {terminalAcceso.nombre_sucursal}
+                      </h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setTerminalAcceso(null)}
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: 10,
+                        border: '1px solid #cbd5e1',
+                        background: '#ffffff',
+                        color: '#475569',
+                        fontSize: 20,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <div style={{ marginBottom: 18 }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: 8,
+                      }}
+                    >
+                      URL de acceso
+                    </div>
+
+                    <div
+                      style={{
+                        padding: 14,
+                        borderRadius: 12,
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        color: '#334155',
+                        fontSize: 13,
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      {typeof window !== 'undefined'
+                        ? `${window.location.origin}/terminal/${terminalAcceso.id}/login`
+                        : ''}
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 22 }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: '#475569',
+                        marginBottom: 8,
+                      }}
+                    >
+                      PIN
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 28,
+                        fontWeight: 800,
+                        letterSpacing: 4,
+                        color: '#0f172a',
+                      }}
+                    >
+                      {terminalAcceso.pin}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const url = `${window.location.origin}/terminal/${terminalAcceso.id}/login`
+
+                      await navigator.clipboard.writeText(url)
+                    }}
+                    style={{
+                      width: '100%',
+                      height: 46,
+                      borderRadius: 12,
+                      border: 'none',
+                      background: '#7c3aed',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Copiar enlace
+                  </button>
+                </div>
+              </div>
             )}
             {terminalEditando && (
                 <div

@@ -1,82 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getCurrentComercio } from '@/lib/getCurrentComercio'
-
 export default function TerminalLoginPage() {
-  const [comercioId, setComercioId] = useState('')
-  const [pin, setPin] = useState('')
-  const [mensaje, setMensaje] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    async function cargarComercio() {
-      try {
-        const comercio = await getCurrentComercio()
-
-        if (comercio?.id) {
-          setComercioId(comercio.id)
-          return
-        }
-
-        setMensaje('No se encontró el comercio asociado')
-      } catch (error) {
-        console.error(error)
-        setMensaje('No se pudo identificar el comercio')
-      }
-    }
-
-    cargarComercio()
-  }, [])
-
-  const ingresar = async () => {
-    setMensaje('')
-
-    if (!comercioId) {
-      setMensaje('No se encontró el comercio')
-      return
-    }
-
-    if (!pin.trim()) {
-      setMensaje('Ingresá el PIN')
-      return
-    }
-
-    try {
-      setLoading(true)
-
-      const res = await fetch('/api/terminal/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          comercio_id: comercioId,
-          pin: pin.trim(),
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!data.ok) {
-        setMensaje(data.error || 'PIN incorrecto')
-        return
-      }
-
-      sessionStorage.setItem(
-        'benefi_terminal',
-        JSON.stringify(data.terminal)
-      )
-
-      window.location.href = '/terminal'
-    } catch (error) {
-      console.error(error)
-      setMensaje('Ocurrió un error al ingresar')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div
       style={{
@@ -92,12 +16,13 @@ export default function TerminalLoginPage() {
       <div
         style={{
           width: '100%',
-          maxWidth: 420,
+          maxWidth: 460,
           background: '#ffffff',
           borderRadius: 22,
-          padding: 28,
+          padding: 32,
           border: '1px solid #e2e8f0',
           boxShadow: '0 18px 40px rgba(15, 23, 42, 0.10)',
+          textAlign: 'center',
         }}
       >
         <div
@@ -106,7 +31,8 @@ export default function TerminalLoginPage() {
             fontWeight: 800,
             color: '#2563eb',
             textTransform: 'uppercase',
-            marginBottom: 8,
+            letterSpacing: '0.08em',
+            marginBottom: 12,
           }}
         >
           Terminal BENEFI
@@ -115,102 +41,54 @@ export default function TerminalLoginPage() {
         <h1
           style={{
             margin: 0,
-            marginBottom: 8,
+            marginBottom: 12,
             fontSize: 30,
             color: '#0f172a',
           }}
         >
-          Ingresar a la terminal
+          Acceso a terminal
         </h1>
 
         <p
           style={{
-            marginTop: 0,
-            marginBottom: 24,
+            margin: 0,
             color: '#64748b',
-            fontSize: 14,
-            lineHeight: '20px',
+            fontSize: 15,
+            lineHeight: '23px',
           }}
         >
-          Ingresá el PIN asignado a esta sucursal.
+          Para ingresar utilizá el enlace asignado a tu sucursal.
+          Cada terminal posee un acceso único y un PIN propio.
         </p>
 
-        <label
+        <div
           style={{
-            display: 'block',
-            marginBottom: 8,
+            marginTop: 24,
+            padding: '16px 18px',
+            borderRadius: 14,
+            background: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            color: '#1e40af',
             fontSize: 14,
-            fontWeight: 700,
-            color: '#334155',
+            lineHeight: '21px',
+            fontWeight: 600,
           }}
         >
-          PIN
-        </label>
+          Si no tenés el enlace de acceso, solicitálo al administrador
+          del comercio.
+        </div>
 
-        <input
-          type="password"
-          inputMode="numeric"
-          maxLength={6}
-          value={pin}
-          onChange={(e) =>
-            setPin(e.target.value.replace(/\D/g, ''))
-          }
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              void ingresar()
-            }
-          }}
-          placeholder="••••"
+        <div
           style={{
-            width: '100%',
-            height: 54,
-            borderRadius: 14,
-            border: '1px solid #cbd5e1',
-            padding: '0 16px',
-            fontSize: 24,
-            letterSpacing: 8,
-            textAlign: 'center',
-            outline: 'none',
-            boxSizing: 'border-box',
-            marginBottom: 16,
-          }}
-        />
-
-        {mensaje && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: '12px 14px',
-              borderRadius: 12,
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#991b1b',
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            {mensaje}
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={ingresar}
-          disabled={loading}
-          style={{
-            width: '100%',
-            height: 52,
-            borderRadius: 14,
-            border: 'none',
-            background: loading ? '#94a3b8' : '#2563eb',
-            color: '#ffffff',
-            fontSize: 16,
-            fontWeight: 800,
-            cursor: loading ? 'not-allowed' : 'pointer',
+            marginTop: 26,
+            paddingTop: 20,
+            borderTop: '1px solid #e2e8f0',
+            color: '#94a3b8',
+            fontSize: 12,
           }}
         >
-          {loading ? 'Ingresando...' : 'Ingresar'}
-        </button>
+          Powered by BENEFI
+        </div>
       </div>
     </div>
   )

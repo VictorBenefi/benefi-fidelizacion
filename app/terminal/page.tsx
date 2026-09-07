@@ -92,35 +92,52 @@ export default function Home() {
 const [validandoTerminal, setValidandoTerminal] = useState(true)
 
 useEffect(() => {
-  if (typeof window === 'undefined') return
+  let mounted = true
 
-  const terminalGuardada = sessionStorage.getItem('benefi_terminal')
+  async function validarSesionTerminal() {
+    try {
+      const res = await fetch('/api/terminal/session', {
+        method: 'GET',
+        cache: 'no-store',
+      })
 
-  if (!terminalGuardada) {
-    window.location.href = '/terminal/login'
-    return
+      const data = await res.json()
+
+      if (!res.ok || !data?.ok || !data?.terminal) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('benefi_terminal')
+          window.location.href = '/terminal/login'
+        }
+        return
+      }
+
+      if (!mounted) return
+
+      setTerminalActual(data.terminal)
+      setComercioId(data.terminal.comercio_id)
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(
+          'benefi_terminal',
+          JSON.stringify(data.terminal)
+        )
+      }
+
+      setValidandoTerminal(false)
+    } catch (error) {
+      console.error('Error validando sesión de terminal:', error)
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('benefi_terminal')
+        window.location.href = '/terminal/login'
+      }
+    }
   }
 
-  try {
-    const terminal = JSON.parse(terminalGuardada)
+  validarSesionTerminal()
 
-    if (
-      !terminal?.id ||
-      !terminal?.comercio_id ||
-      !terminal?.nombre_sucursal
-    ) {
-      sessionStorage.removeItem('benefi_terminal')
-      window.location.href = '/terminal/login'
-      return
-    }
-
-    setTerminalActual(terminal)
-    setComercioId(terminal.comercio_id)
-    setValidandoTerminal(false)
-  } catch (error) {
-    console.error('Terminal inválida', error)
-    sessionStorage.removeItem('benefi_terminal')
-    window.location.href = '/terminal/login'
+  return () => {
+    mounted = false
   }
 }, [])
 
@@ -662,11 +679,26 @@ const calcularPuntos = () => {
   )
 }
 
-const cerrarTerminal = () => {
+const cerrarTerminal = async () => {
   if (typeof window === 'undefined') return
 
+  const terminalId = terminalActual?.id
+
+  try {
+    await fetch('/api/terminal/logout', {
+      method: 'POST',
+    })
+  } catch (error) {
+    console.error('Error cerrando sesión de terminal:', error)
+  }
+
   sessionStorage.removeItem('benefi_terminal')
-  window.location.href = '/terminal/login'
+
+  if (terminalId) {
+    window.location.href = `/terminal/${terminalId}/login`
+  } else {
+    window.location.href = '/terminal/login'
+  }
 }
 
 return (

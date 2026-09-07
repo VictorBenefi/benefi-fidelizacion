@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getComercioSessionFromRequest } from '@/lib/auth/comercioSession'
 
 type Movimiento = {
   id: string
@@ -112,6 +113,19 @@ function agruparOperaciones(movimientos: Movimiento[]): OperacionAgrupada[] {
 
 export async function POST(req: Request) {
   try {
+    const session =
+      getComercioSessionFromRequest(req)
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Sesión de comercio no válida.',
+        },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
     const { usuario_id, comercio_id, fecha_desde, fecha_hasta } = body
 
@@ -121,6 +135,46 @@ export async function POST(req: Request) {
 
     if (!comercio_id) {
       return NextResponse.json({ ok: false, error: 'comercio_id es obligatorio' }, { status: 400 })
+    }
+
+    if (session.comercio_id !== comercio_id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            'No tenés permiso para acceder a este comercio.',
+        },
+        { status: 403 }
+      )
+    }
+
+    const { data: vinculoUsuario, error: vinculoError } =
+      await supabaseAdmin
+        .from('usuarios_comercios')
+        .select('usuario_id')
+        .eq('usuario_id', usuario_id)
+        .eq('comercio_id', session.comercio_id)
+        .maybeSingle()
+
+    if (vinculoError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: vinculoError.message,
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!vinculoUsuario) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            'El usuario no pertenece a este comercio.',
+        },
+        { status: 403 }
+      )
     }
 
     if (!fecha_desde || !fecha_hasta) {
@@ -151,7 +205,7 @@ export async function POST(req: Request) {
         anulado_por_movimiento_id
       `)
       .eq('usuario_id', usuario_id)
-      .eq('comercio_id', comercio_id)
+      .eq('comercio_id', session.comercio_id)
       .gte('fecha', desde.toISOString())
       .lte('fecha', hasta.toISOString())
       .order('fecha', { ascending: false })

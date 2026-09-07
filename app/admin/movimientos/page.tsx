@@ -1,5 +1,4 @@
 "use client";
-"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -238,7 +237,7 @@ const movimientosFiltrados = movimientos.filter((m) => {
   <div className="flex flex-col justify-end">
     <button
       onClick={exportarMovimientos}
-      className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+      className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-white"
     >
       Exportar
     </button>
@@ -301,7 +300,7 @@ const movimientosFiltrados = movimientos.filter((m) => {
                   {m.estado !== "anulado" && m.tipo !== "reversion" ? (
                     <button
                       onClick={() => anularMovimiento(m)}
-                      className="rounded-lg border px-3 py-1 text-sm text-red-600"
+                      className="cursor-pointer rounded-lg border px-3 py-1 text-sm text-red-600"
                     >
                       Anular
                     </button>

@@ -607,7 +607,25 @@ const calcularPuntos = () => {
 
   const formatearFecha = (fecha: string) => {
     try {
-      return new Date(fecha).toLocaleString('es-AR')
+      const fechaNormalizada =
+        fecha.includes('Z') ||
+        fecha.includes('+')
+          ? fecha
+          : `${fecha.replace(' ', 'T')}Z`
+
+      return new Date(fechaNormalizada).toLocaleString(
+        'es-AR',
+        {
+          timeZone: 'America/Argentina/Salta',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }
+      )
     } catch {
       return fecha
     }
@@ -619,7 +637,11 @@ const calcularPuntos = () => {
   const promoSeleccionada = promociones.find((p) => p.id === promocionId)
   const puntosCalculados = calcularPuntos()
   const canjeActual = Number(puntosCanje || 0)
-  const resultadoFinal = puntosCalculados - canjeActual
+
+  const resultadoFinal =
+    Number(cliente?.saldo || 0) -
+    canjeActual +
+    puntosCalculados
 
   function formatearPesos(valor: string) {
   const numero = valor.replace(/\D/g, "")
@@ -1114,6 +1136,7 @@ return (
                         placeholder="Opcional"
                         value={puntosCanje}
                         onChange={(e) => setPuntosCanje(e.target.value)}
+                        onWheel={(e) => e.currentTarget.blur()}
                         style={inputStyle}
                       />
                     </div>
@@ -2131,7 +2154,10 @@ return (
               <div><strong>Generados:</strong> {operacionAAnular.puntos_generados} puntos</div>
               <div><strong>Canjeados:</strong> {operacionAAnular.puntos_canjeados} puntos</div>
               <div><strong>Resultado neto:</strong> {operacionAAnular.resultado_neto} puntos</div>
-              <div><strong>Fecha:</strong> {new Date(operacionAAnular.fecha).toLocaleString('es-AR')}</div>
+              <div>
+                <strong>Fecha:</strong>{' '}
+                {formatearFecha(operacionAAnular.fecha)}
+              </div>
             </div>
 
             <div style={{ marginTop: 16 }}>

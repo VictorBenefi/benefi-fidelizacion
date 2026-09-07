@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
-import ComercioSelector from "@/components/ComercioSelector";
+
 
 type MenuItem = {
   href: string;
@@ -309,7 +309,15 @@ export default function SidebarLayout({
     setMenuOpen(false);
   }, [pathname]);
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await fetch("/api/comercio/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Error cerrando sesión del comercio:", error);
+    }
+
     if (typeof window !== "undefined") {
       localStorage.removeItem("comercio_id");
       localStorage.removeItem("current_comercio_id");
@@ -405,13 +413,6 @@ export default function SidebarLayout({
                   ? "Cargando branding del comercio..."
                   : portalDescripcion}
               </div>
-            </div>
-
-            <div className="mb-[18px] rounded-2xl border border-white/10 bg-white/[0.04] p-3.5">
-              <div className="mb-2.5 text-xs font-extrabold uppercase tracking-[0.08em] text-slate-500">
-                Comercio activo
-              </div>
-              <ComercioSelector />
             </div>
 
             <div className="mb-3 text-xs font-extrabold uppercase tracking-[0.08em] text-slate-500">

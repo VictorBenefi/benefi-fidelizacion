@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { getComercioSessionFromRequest } from '@/lib/auth/comercioSession'
 
 type Movimiento = {
   id: string
@@ -91,8 +92,21 @@ function agruparOperaciones(movimientos: Movimiento[]): OperacionResumen[] {
   )
 }
 
-export async function POST(req: Request) {
+  export async function POST(req: Request) {
   try {
+    const session =
+      getComercioSessionFromRequest(req)
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Sesión de comercio no válida.',
+        },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
     const { comercio_id, fecha_desde, fecha_hasta } = body
 
@@ -100,6 +114,17 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { ok: false, error: 'comercio_id es obligatorio' },
         { status: 400 }
+      )
+    }
+
+    if (session.comercio_id !== comercio_id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            'No tenés permiso para acceder a este comercio.',
+        },
+        { status: 403 }
       )
     }
 
@@ -137,7 +162,7 @@ export async function POST(req: Request) {
         es_reverso
       `
       )
-      .eq('comercio_id', comercio_id)
+      .eq('comercio_id', session.comercio_id)
       .gte('fecha', desde.toISOString())
       .lte('fecha', hasta.toISOString())
       .order('fecha', { ascending: false })

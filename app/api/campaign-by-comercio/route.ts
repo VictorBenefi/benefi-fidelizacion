@@ -1,8 +1,21 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getComercioSessionFromRequest } from "@/lib/auth/comercioSession";
 
 export async function GET(req: Request) {
   try {
+    const session = getComercioSessionFromRequest(req);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Sesión de comercio no válida.",
+        },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const comercio_id = searchParams.get("comercio_id");
 
@@ -13,10 +26,20 @@ export async function GET(req: Request) {
       );
     }
 
+    if (session.comercio_id !== comercio_id) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "No tenés permiso para consultar este comercio.",
+        },
+        { status: 403 }
+      );
+    }
+
     const { data: comercio, error: comercioError } = await supabaseAdmin
       .from("comercios")
       .select("campaign_id")
-      .eq("id", comercio_id)
+      .eq("id", session.comercio_id)
       .single();
 
     if (comercioError || !comercio) {

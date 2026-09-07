@@ -306,7 +306,7 @@ async function verDetalle(usuario: Usuario) {
 
           <button
             onClick={exportarExcel}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+            className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-white"
           >
             Exportar
           </button>

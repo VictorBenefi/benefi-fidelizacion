@@ -38,10 +38,13 @@ export async function getCurrentComercio() {
   if (!comercioId) return null;
 
   try {
-    const res = await fetch(`/api/comercio/me?comercio_id=${comercioId}`, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `/api/comercio/me?comercio_id=${comercioId}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
 
     const data = await res.json();
 
@@ -49,7 +52,10 @@ export async function getCurrentComercio() {
 
     return data;
   } catch (error) {
-    console.error("Error obteniendo comercio actual:", error);
+    console.error(
+      "Error obteniendo comercio actual:",
+      error
+    );
     return null;
   }
 }

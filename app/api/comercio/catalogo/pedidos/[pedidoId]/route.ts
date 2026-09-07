@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { enviarPushUsuario } from '@/lib/push'
-import { calcularPuntosPedido } from '@/lib/catalogoPuntos'
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getComercioSessionFromRequest } from "@/lib/auth/comercioSession";
+import { enviarPushUsuario } from "@/lib/push";
+import { calcularPuntosPedido } from "@/lib/catalogoPuntos";
 
 const ESTADOS_VALIDOS = [
   "nuevo",
@@ -24,6 +20,19 @@ export async function GET(
   }
 ) {
   try {
+
+    const session =
+      getComercioSessionFromRequest(req);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Sesión de comercio no válida.",
+        },
+        { status: 401 }
+      );
+    }
+
     const { pedidoId } = await context.params;
 
     const { searchParams } = new URL(req.url);
@@ -36,12 +45,22 @@ export async function GET(
       );
     }
 
+    if (session.comercio_id !== comercioId) {
+      return NextResponse.json(
+        {
+          error:
+            "No tenés permiso para acceder a este comercio.",
+        },
+        { status: 403 }
+      );
+    }
+
     const { data: pedido, error: pedidoError } =
       await supabaseAdmin
         .from("catalogo_pedidos")
         .select("*")
         .eq("id", pedidoId)
-        .eq("comercio_id", comercioId)
+        .eq("comercio_id", session.comercio_id)
         .maybeSingle();
 
     if (pedidoError) {
@@ -110,6 +129,18 @@ export async function PATCH(
   }
 ) {
   try {
+    const session =
+      getComercioSessionFromRequest(req);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Sesión de comercio no válida.",
+        },
+        { status: 401 }
+      );
+    }
+
     const { pedidoId } = await context.params;
     const body = await req.json();
 
@@ -123,6 +154,16 @@ export async function PATCH(
       !comercioId ||
       (!estado && !confirmarPago && !marcarVisto)
     ) {
+
+    if (session.comercio_id !== comercioId) {
+      return NextResponse.json(
+        {
+          error:
+            "No tenés permiso para acceder a este comercio.",
+        },
+        { status: 403 }
+      );
+    }
       return NextResponse.json(
         { error: "Faltan datos para actualizar el pedido" },
         { status: 400 }
@@ -141,7 +182,7 @@ export async function PATCH(
         .from("catalogo_pedidos")
         .select("id, estado, forma_pago, estado_pago")
         .eq("id", pedidoId)
-        .eq("comercio_id", comercioId)
+        .eq("comercio_id", session.comercio_id)
         .maybeSingle();
 
     if (!pedidoActual) {
@@ -152,38 +193,41 @@ export async function PATCH(
     }
 
     if (marcarVisto) {
-      const { data: pedidoVisto, error: vistoError } =
-        await supabaseAdmin
-          .from("catalogo_pedidos")
-          .update({
-            visto_comercio: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", pedidoId)
-          .eq("comercio_id", comercioId)
-          .select()
-          .single();
+  const { data: pedidoVisto, error: vistoError } =
+    await supabaseAdmin
+      .from("catalogo_pedidos")
+      .update({
+        visto_comercio: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", pedidoId)
+      .eq("comercio_id", session.comercio_id)
+      .select()
+      .single();
 
-      if (vistoError) {
-        return NextResponse.json(
-          { error: vistoError.message },
-          { status: 500 }
-        );
-      }
+  if (vistoError) {
+    return NextResponse.json(
+      { error: vistoError.message },
+      { status: 500 }
+    );
+  }
 
-      return NextResponse.json({
-        ok: true,
-        pedido: pedidoVisto,
-      });
-    }
+  return NextResponse.json({
+    ok: true,
+    pedido: pedidoVisto,
+  });
+}
 
-    if (confirmarPago) {
-    if (pedidoActual.forma_pago !== "transferencia") {
-      return NextResponse.json(
-        { error: "Solo se puede confirmar manualmente un pago por transferencia" },
-        { status: 400 }
-      );
-    }
+if (confirmarPago) {
+  if (pedidoActual.forma_pago !== "transferencia") {
+    return NextResponse.json(
+      {
+        error:
+          "Solo se puede confirmar manualmente un pago por transferencia",
+      },
+      { status: 400 }
+    );
+  }
 
   if (pedidoActual.estado_pago === "pagado") {
     return NextResponse.json({
@@ -200,7 +244,7 @@ export async function PATCH(
         updated_at: new Date().toISOString(),
       })
       .eq("id", pedidoId)
-      .eq("comercio_id", comercioId)
+      .eq("comercio_id", session.comercio_id)
       .select()
       .single();
 
@@ -217,7 +261,7 @@ export async function PATCH(
   });
 }
 
-    if (
+if (
   pedidoActual.estado === "entregado" ||
   pedidoActual.estado === "cancelado"
 ) {
@@ -232,21 +276,21 @@ export async function PATCH(
   );
 }
 
-    const { data: pedido, error } =
-      await supabaseAdmin
-        .from("catalogo_pedidos")
-        .update({
-          estado,
-          ...(estado === "entregado" &&
-          pedidoActual.forma_pago === "al_recibir"
-            ? { estado_pago: "pagado" }
-            : {}),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", pedidoId)
-        .eq("comercio_id", comercioId)
-        .select()
-        .single();
+const { data: pedido, error } =
+  await supabaseAdmin
+    .from("catalogo_pedidos")
+    .update({
+      estado,
+      ...(estado === "entregado" &&
+      pedidoActual.forma_pago === "al_recibir"
+        ? { estado_pago: "pagado" }
+        : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", pedidoId)
+    .eq("comercio_id", session.comercio_id)
+    .select()
+    .single();
 
     if (error) {
       return NextResponse.json(

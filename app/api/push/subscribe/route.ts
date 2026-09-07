@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUser } from '@/lib/auth/getAuthenticatedUser'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +9,21 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: NextRequest) {
   try {
+    const { user, error: authError } =
+      await getAuthenticatedUser(req)
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            authError ||
+            'Usuario no autenticado.',
+        },
+        { status: 401 }
+      )
+    }
+
     const body = await req.json()
 
     const {
@@ -28,6 +44,74 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Faltan datos de la suscripción' },
         { status: 400 }
+      )
+    }
+
+    const { data: usuario, error: usuarioError } =
+      await supabaseAdmin
+        .from('usuarios')
+        .select('id, auth_user_id')
+        .eq('id', usuario_id)
+        .eq('auth_user_id', user.id)
+        .maybeSingle()
+
+    if (usuarioError) {
+      console.error(
+        'Error validando usuario de la suscripción Push:',
+        usuarioError
+      )
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'No se pudo validar el usuario.',
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!usuario) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'El usuario no corresponde a la sesión autenticada.',
+        },
+        { status: 403 }
+      )
+    }
+
+    const {
+      data: usuarioComercio,
+      error: usuarioComercioError,
+    } = await supabaseAdmin
+      .from('usuarios_comercios')
+      .select('usuario_id, comercio_id')
+      .eq('usuario_id', usuario.id)
+      .eq('comercio_id', comercio_id)
+      .maybeSingle()
+
+    if (usuarioComercioError) {
+      console.error(
+        'Error validando vínculo usuario-comercio:',
+        usuarioComercioError
+      )
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'No se pudo validar el comercio del usuario.',
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!usuarioComercio) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'El usuario no pertenece a este comercio.',
+        },
+        { status: 403 }
       )
     }
 

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  createComercioSessionToken,
+  comercioSessionCookieName,
+  comercioSessionDuration,
+} from "@/lib/auth/comercioSession";
 
 export async function POST(req: Request) {
   try {
@@ -61,16 +66,31 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      comercio: {
-        id: comercio.id,
-        nombre_fantasia: comercio.nombre_fantasia,
-        razon_social: comercio.razon_social,
-        email: comercio.email,
-        slug: comercio.slug,
-      },
-    });
+    const sessionToken =
+  createComercioSessionToken(comercio.id);
+
+  const response = NextResponse.json({
+    ok: true,
+    comercio: {
+      id: comercio.id,
+      nombre_fantasia: comercio.nombre_fantasia,
+      razon_social: comercio.razon_social,
+      email: comercio.email,
+      slug: comercio.slug,
+    },
+  });
+
+  response.cookies.set({
+    name: comercioSessionCookieName,
+    value: sessionToken,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: comercioSessionDuration,
+  });
+
+  return response;
 
   } catch (error) {
     console.error("Error en login comercio:", error);
