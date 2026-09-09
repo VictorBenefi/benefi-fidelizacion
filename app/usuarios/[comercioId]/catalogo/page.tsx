@@ -291,11 +291,11 @@ useEffect(() => {
                   key={producto.id}
                   className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div className="relative bg-white">
+                  <div className="relative flex h-52 items-center justify-center bg-white p-3 sm:h-56">
                     <img
                       src={producto.imagen_url}
                       alt={producto.nombre}
-                      className="h-52 w-full object-cover sm:h-56"
+                      className="h-full w-full object-contain"
                     />
 
                     {producto.destacado && (

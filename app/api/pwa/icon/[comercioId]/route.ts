@@ -64,16 +64,41 @@ export async function GET(
       await logoResponse.arrayBuffer()
     )
 
-    const iconBuffer = await sharp(logoBuffer)
-      .resize(size, size, {
+    const padding = Math.round(size * 0.18)
+    const logoSize = size - padding * 2
+
+    const resizedLogo = await sharp(logoBuffer)
+      .resize(logoSize, logoSize, {
         fit: 'contain',
+        background: {
+          r: 255,
+          g: 255,
+          b: 255,
+          alpha: 0,
+        },
+      })
+      .png()
+      .toBuffer()
+
+    const iconBuffer = await sharp({
+      create: {
+        width: size,
+        height: size,
+        channels: 4,
         background: {
           r: 255,
           g: 255,
           b: 255,
           alpha: 1,
         },
-      })
+      },
+    })
+      .composite([
+        {
+          input: resizedLogo,
+          gravity: 'center',
+        },
+      ])
       .png()
       .toBuffer()
 
