@@ -82,8 +82,7 @@ export async function GET(
       .toBuffer()
 
     const esCorcho =
-    comercio.nombre_fantasia?.trim().toLowerCase() ===
-    'corcho bebidas'
+    comercio.id === '08d07a59-4874-4bc4-9bfc-39436fe426ba'
 
   const backgroundColor = esCorcho
     ? {
