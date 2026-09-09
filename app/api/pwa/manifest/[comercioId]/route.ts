@@ -80,13 +80,13 @@ export async function GET(
       icons: logo
       ? [
           {
-            src: `/api/pwa/icon/${comercioId}?size=192`,
+            src: `/api/pwa/icon/${comercioId}?size=192&v=4`,
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any',
           },
           {
-            src: `/api/pwa/icon/${comercioId}?size=512`,
+            src: `/api/pwa/icon/${comercioId}?size=512&v=4`,
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any',
