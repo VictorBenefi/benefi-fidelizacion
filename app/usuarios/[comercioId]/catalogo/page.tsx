@@ -189,7 +189,7 @@ useEffect(() => {
             </div>
 
             <h1 className="mt-2 text-3xl font-black sm:text-4xl">
-              CAFE CENTRO
+              {nombreComercio}
             </h1>
 
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/80 sm:text-base">
