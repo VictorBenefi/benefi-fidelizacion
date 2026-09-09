@@ -36,6 +36,8 @@ export default function UsuariosPage() {
   const [telefono, setTelefono] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [pasoRegistro, setPasoRegistro] = useState<'datos' | 'codigo'>('datos')
+  const [codigoVerificacion, setCodigoVerificacion] = useState('')
 
   const [showLoginPassword, setShowLoginPassword] = useState(false)
   const [showRegisterPassword, setShowRegisterPassword] = useState(false)
@@ -309,38 +311,106 @@ export default function UsuariosPage() {
   }
 
   const handleRegister = async () => {
-    limpiarMensaje()
+  limpiarMensaje()
 
-    if (!validarRegistro()) return
+  if (!validarRegistro()) return
 
-    setLoading(true)
+  setLoading(true)
 
-    try {
-      const res = await fetch('/api/usuarios/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre_completo: nombreCompleto.trim(),
-          dni: dni.trim(),
-          email: email.trim(),
-          telefono: telefono.trim(),
-          password,
-          comercio_id: comercioId,
-        }),
-      })
+  try {
+    const res = await fetch('/api/usuarios/enviar-codigo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        comercio_id: comercioId,
+      }),
+    })
 
-      const data = await res.json()
+    const data = await res.json()
 
-      if (!data.ok) {
-        setMensaje(data.error || 'No se pudo crear la cuenta')
-        setMensajeTipo('error')
-        return
-      }
+    if (!res.ok || !data.ok) {
+      setMensaje(data.error || 'No se pudo enviar el código de verificación')
+      setMensajeTipo('error')
+      return
+    }
 
-      if (data.usuario_existente) {
+    setCodigoVerificacion('')
+    setPasoRegistro('codigo')
+
+    setMensaje(
+      `Te enviamos un código de 6 dígitos a ${email.trim().toLowerCase()}`
+    )
+    setMensajeTipo('ok')
+  } catch (error) {
+    console.error(error)
+    setMensaje('Ocurrió un error al enviar el código de verificación')
+    setMensajeTipo('error')
+  } finally {
+    setLoading(false)
+  }
+}
+
+const handleVerificarCodigo = async () => {
+  limpiarMensaje()
+
+  if (!codigoVerificacion.trim()) {
+    setMensaje('Ingresá el código que recibiste por email')
+    setMensajeTipo('error')
+    return
+  }
+
+  setLoading(true)
+
+  try {
+    // 1. Verificar el código
+    const resVerificacion = await fetch('/api/usuarios/verificar-codigo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        comercio_id: comercioId,
+        codigo: codigoVerificacion.trim(),
+      }),
+    })
+
+    const dataVerificacion = await resVerificacion.json()
+
+    if (!resVerificacion.ok || !dataVerificacion.ok) {
+      setMensaje(
+        dataVerificacion.error || 'El código de verificación no es correcto'
+      )
+      setMensajeTipo('error')
+      return
+    }
+
+    // 2. Código correcto: realizar el registro real
+    const resRegistro = await fetch('/api/usuarios/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre_completo: nombreCompleto.trim(),
+        dni: dni.trim(),
+        email: email.trim().toLowerCase(),
+        telefono: telefono.trim(),
+        password,
+        comercio_id: comercioId,
+      }),
+    })
+
+    const dataRegistro = await resRegistro.json()
+
+    if (!resRegistro.ok || !dataRegistro.ok) {
+      setMensaje(dataRegistro.error || 'No se pudo crear la cuenta')
+      setMensajeTipo('error')
+      return
+    }
+
+    // 3. Si el usuario ya existía, intentar ingresar
+    if (dataRegistro.usuario_existente) {
       const { error: loginExistenteError } =
         await supabaseClient.auth.signInWithPassword({
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           password,
         })
 
@@ -350,12 +420,13 @@ export default function UsuariosPage() {
         )
         setMensajeTipo('ok')
 
-        setLoginEmail(email.trim())
+        setLoginEmail(email.trim().toLowerCase())
         setLoginPassword('')
         setPassword('')
         setConfirmPassword('')
+        setCodigoVerificacion('')
+        setPasoRegistro('datos')
         setTab('login')
-
         return
       }
 
@@ -363,31 +434,33 @@ export default function UsuariosPage() {
       return
     }
 
-    const { error: loginError } = await supabaseClient.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
+    // 4. Usuario nuevo: iniciar sesión automáticamente
+    const { error: loginError } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      })
 
     if (loginError) {
       setMensaje(
         'La cuenta fue creada, pero no se pudo iniciar sesión automáticamente. Probá ingresar manualmente.'
       )
       setMensajeTipo('error')
-      setTab('login')
-      setLoginEmail(email.trim())
+      setLoginEmail(email.trim().toLowerCase())
       setLoginPassword('')
+      setTab('login')
       return
     }
 
     router.push(`/usuarios/${comercioId}/dashboard?nuevo=1`)
-    } catch (error) {
-      console.error(error)
-      setMensaje('Ocurrió un error al registrarte')
-      setMensajeTipo('error')
-    } finally {
-      setLoading(false)
-    }
+  } catch (error) {
+    console.error(error)
+    setMensaje('Ocurrió un error al verificar y completar el registro')
+    setMensajeTipo('error')
+  } finally {
+    setLoading(false)
   }
+}
 
   if (loadingBranding) {
     return (
@@ -465,6 +538,9 @@ export default function UsuariosPage() {
                   setEmail('')
                   setPassword('')
                   setConfirmPassword('')
+
+                  setPasoRegistro('datos')
+                  setCodigoVerificacion('')
 
                   setTab('register')
                 }}
@@ -667,164 +743,259 @@ export default function UsuariosPage() {
 
             {tab === 'register' && (
               <div>
-                <div className="mb-5">
-                  <h2 className="text-2xl font-black text-slate-950">
-                    Crear cuenta
-                  </h2>
-                  <p className="mt-1 text-sm leading-6 text-slate-500">
-                    Registrate para consultar tus puntos, canjes y movimientos.
-                  </p>
-                </div>
-
-               <form autoComplete="off" onSubmit={(e) => e.preventDefault()}> 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <label className="mb-2 block text-sm font-bold text-slate-700">
-                      Nombre y apellido
-                    </label>
-                    <input
-                      type="text"
-                      value={nombreCompleto}
-                      onChange={(e) => setNombreCompleto(e.target.value)}
-                      placeholder="Juan Pérez"
-                      className={inputClassName}
-                    />
-                  </div>
-
+                {pasoRegistro === 'codigo' ? (
                   <div>
-                    <label className="mb-2 block text-sm font-bold text-slate-700">
-                      DNI
-                    </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={dni}
-                      onChange={(e) => setDni(e.target.value)}
-                      placeholder="12345678"
-                      className={inputClassName}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-bold text-slate-700">
-                      Teléfono
-                    </label>
-                    <input
-                      type="tel"
-                      value={telefono}
-                      onChange={(e) => setTelefono(e.target.value)}
-                      placeholder="3870000000"
-                      className={inputClassName}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="mb-2 block text-sm font-bold text-slate-700">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="benefi-registro-correo-nuevo"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="tuemail@correo.com"
-                      autoComplete="off"
-                      readOnly
-                      onFocus={(e) => {
-                        e.currentTarget.removeAttribute('readonly')
-                      }}
-                      className={inputClassName}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-bold text-slate-700">
-                      Contraseña
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showRegisterPassword ? 'text' : 'password'}
-                        name="benefi-registro-clave-nueva"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Mínimo 6 caracteres"
-                        autoComplete="new-password"
-                        readOnly
-                        onFocus={(e) => {
-                          e.currentTarget.removeAttribute('readonly')
-                        }}
-                        className={`${inputClassName} pr-12`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
-                        aria-label={
-                          showRegisterPassword
-                            ? 'Ocultar contraseña'
-                            : 'Mostrar contraseña'
-                        }
+                    <div className="mb-6 text-center">
+                      <div
+                        className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-2xl font-black text-white"
+                        style={{ background: branding.colorBoton }}
                       >
-                        {showRegisterPassword ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                        ✓
+                      </div>
 
-                  <div>
-                    <label className="mb-2 block text-sm font-bold text-slate-700">
-                      Confirmar contraseña
-                    </label>
-                    <div className="relative">
+                      <h2 className="text-2xl font-black text-slate-950">
+                        Verificá tu correo
+                      </h2>
+
+                      <p className="mt-2 text-sm leading-6 text-slate-500">
+                        Enviamos un código de 6 dígitos a
+                      </p>
+
+                      <p className="mt-1 break-all text-sm font-extrabold text-slate-800">
+                        {email.trim().toLowerCase()}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-center text-sm font-bold text-slate-700">
+                        Código de verificación
+                      </label>
+
                       <input
-                        type={showRegisterConfirmPassword ? 'text' : 'password'}
-                        name="benefi-registro-confirmacion-clave"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Repetí la contraseña"
-                        autoComplete="new-password"
-                        readOnly
-                        onFocus={(e) => {
-                          e.currentTarget.removeAttribute('readonly')
-                        }}
-                        className={`${inputClassName} pr-12`}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        value={codigoVerificacion}
+                        onChange={(e) =>
+                          setCodigoVerificacion(
+                            e.target.value.replace(/\D/g, '').slice(0, 6)
+                          )
+                        }
+                        placeholder="000000"
+                        className={`${inputClassName} text-center text-xl font-black tracking-[0.35em]`}
                       />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowRegisterConfirmPassword(!showRegisterConfirmPassword)
-                        }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
-                        aria-label={
-                          showRegisterConfirmPassword
-                            ? 'Ocultar contraseña'
-                            : 'Mostrar contraseña'
-                        }
-                      >
-                        {showRegisterConfirmPassword ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
                     </div>
-                  </div>
 
-                  <div className="sm:col-span-2">
                     <button
                       type="button"
-                      onClick={handleRegister}
-                      disabled={loading}
-                      className="mt-1 h-12 w-full cursor-pointer rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"                      style={{ background: branding.colorBoton }}
+                      onClick={handleVerificarCodigo}
+                      disabled={loading || codigoVerificacion.length !== 6}
+                      className="mt-5 h-12 w-full cursor-pointer rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                      style={{ background: branding.colorBoton }}
                     >
-                      {loading ? 'Creando cuenta...' : 'Crear cuenta'}
+                      {loading ? 'Verificando...' : 'Verificar código'}
                     </button>
+
+                    <div className="mt-5 flex flex-col items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleRegister}
+                        disabled={loading}
+                        className="cursor-pointer text-sm font-semibold text-blue-600 underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Reenviar código
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          limpiarMensaje()
+                          setCodigoVerificacion('')
+                          setPasoRegistro('datos')
+                        }}
+                        disabled={loading}
+                        className="cursor-pointer text-sm font-semibold text-slate-500 underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Cambiar correo
+                      </button>
+                    </div>
                   </div>
-                </div>
-               </form> 
+                ) : (
+                  <div>
+                    <div className="mb-5">
+                      <h2 className="text-2xl font-black text-slate-950">
+                        Crear cuenta
+                      </h2>
+
+                      <p className="mt-1 text-sm leading-6 text-slate-500">
+                        Registrate para consultar tus puntos, canjes y movimientos.
+                      </p>
+                    </div>
+
+                    <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                          <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Nombre y apellido
+                          </label>
+
+                          <input
+                            type="text"
+                            value={nombreCompleto}
+                            onChange={(e) => setNombreCompleto(e.target.value)}
+                            placeholder="Juan Pérez"
+                            className={inputClassName}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-bold text-slate-700">
+                            DNI
+                          </label>
+
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={dni}
+                            onChange={(e) => setDni(e.target.value)}
+                            placeholder="12345678"
+                            className={inputClassName}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Teléfono
+                          </label>
+
+                          <input
+                            type="tel"
+                            value={telefono}
+                            onChange={(e) => setTelefono(e.target.value)}
+                            placeholder="3870000000"
+                            className={inputClassName}
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Email
+                          </label>
+
+                          <input
+                            type="email"
+                            name="benefi-registro-correo-nuevo"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="tuemail@correo.com"
+                            autoComplete="off"
+                            readOnly
+                            onFocus={(e) => {
+                              e.currentTarget.removeAttribute('readonly')
+                            }}
+                            className={inputClassName}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Contraseña
+                          </label>
+
+                          <div className="relative">
+                            <input
+                              type={showRegisterPassword ? 'text' : 'password'}
+                              name="benefi-registro-clave-nueva"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              placeholder="Mínimo 6 caracteres"
+                              autoComplete="new-password"
+                              readOnly
+                              onFocus={(e) => {
+                                e.currentTarget.removeAttribute('readonly')
+                              }}
+                              className={`${inputClassName} pr-12`}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowRegisterPassword(!showRegisterPassword)
+                              }
+                              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
+                              aria-label={
+                                showRegisterPassword
+                                  ? 'Ocultar contraseña'
+                                  : 'Mostrar contraseña'
+                              }
+                            >
+                              {showRegisterPassword ? (
+                                <EyeOff size={18} />
+                              ) : (
+                                <Eye size={18} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Confirmar contraseña
+                          </label>
+
+                          <div className="relative">
+                            <input
+                              type={showRegisterConfirmPassword ? 'text' : 'password'}
+                              name="benefi-registro-confirmacion-clave"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Repetí la contraseña"
+                              autoComplete="new-password"
+                              readOnly
+                              onFocus={(e) => {
+                                e.currentTarget.removeAttribute('readonly')
+                              }}
+                              className={`${inputClassName} pr-12`}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowRegisterConfirmPassword(
+                                  !showRegisterConfirmPassword
+                                )
+                              }
+                              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
+                              aria-label={
+                                showRegisterConfirmPassword
+                                  ? 'Ocultar contraseña'
+                                  : 'Mostrar contraseña'
+                              }
+                            >
+                              {showRegisterConfirmPassword ? (
+                                <EyeOff size={18} />
+                              ) : (
+                                <Eye size={18} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <button
+                            type="button"
+                            onClick={handleRegister}
+                            disabled={loading}
+                            className="mt-1 h-12 w-full cursor-pointer rounded-xl text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                            style={{ background: branding.colorBoton }}
+                          >
+                            {loading ? 'Enviando código...' : 'Crear cuenta'}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
             )}
 

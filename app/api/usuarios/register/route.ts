@@ -65,6 +65,54 @@ export async function POST(req: Request) {
       )
     }
 
+    const { data: verificacionEmail, error: verificacionEmailError } =
+  await supabaseAdmin
+    .from('verificaciones_email')
+    .select('id, expira_en')
+    .eq('email', email)
+    .eq('comercio_id', comercio_id)
+    .eq('verificado', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+if (verificacionEmailError) {
+  console.error(
+    'Error verificando validación de email:',
+    verificacionEmailError
+  )
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error: 'No se pudo comprobar la verificación del email.',
+    },
+    { status: 500 }
+  )
+}
+
+if (!verificacionEmail) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: 'Primero debés verificar tu email para completar el registro.',
+      codigo: 'EMAIL_NO_VERIFICADO',
+    },
+    { status: 403 }
+  )
+}
+
+if (new Date(verificacionEmail.expira_en).getTime() < Date.now()) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: 'La verificación del email venció. Solicitá un código nuevo.',
+      codigo: 'VERIFICACION_VENCIDA',
+    },
+    { status: 403 }
+  )
+}
+
     const { data: usuarioExistente } = await supabaseAdmin
       .from('usuarios')
       .select('id, email, dni, auth_user_id')
