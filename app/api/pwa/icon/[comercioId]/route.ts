@@ -20,6 +20,7 @@ export async function GET(
       .from('comercios')
       .select(`
         id,
+        nombre_fantasia,
         logo_url,
         campaign_id
       `)
@@ -80,17 +81,30 @@ export async function GET(
       .png()
       .toBuffer()
 
+    const esCorcho =
+    comercio.nombre_fantasia?.trim().toLowerCase() ===
+    'corcho bebidas'
+
+  const backgroundColor = esCorcho
+    ? {
+        r: 162,
+        g: 116,
+        b: 65,
+        alpha: 1,
+      }
+    : {
+        r: 255,
+        g: 255,
+        b: 255,
+        alpha: 1,
+      }
+
     const iconBuffer = await sharp({
       create: {
         width: size,
         height: size,
         channels: 4,
-        background: {
-          r: 255,
-          g: 255,
-          b: 255,
-          alpha: 1,
-        },
+        background: backgroundColor,
       },
     })
       .composite([
