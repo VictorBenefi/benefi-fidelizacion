@@ -8,8 +8,13 @@ const menuItems = [
   { label: "Inicio", href: "/admin", description: "Panel general del backoffice" },
   { label: "Campañas", href: "/admin/campanias", description: "Branding, logos y colores" },
   { label: "Comercios", href: "/admin/comercios", description: "Asignación y gestión comercial" },
-  { label: "Solicitudes", href: "/admin/solicitudes", description: "Pruebas gratis pendientes"  },
-  { label: "Usuarios", href: "/admin/usuarios", description: "Próximamente" },
+  { label: "Solicitudes", href: "/admin/solicitudes", description: "Pruebas gratis pendientes" },
+{
+  label: "Bajas Ahorro Plus",
+  href: "/admin/bajas-ahorro-plus",
+  description: "Solicitudes de baja de usuarios",
+},
+{ label: "Usuarios", href: "/admin/usuarios", description: "PrÃ³ximamente" },
   { label: "Promociones", href: "/admin/promociones" },
   
   { 

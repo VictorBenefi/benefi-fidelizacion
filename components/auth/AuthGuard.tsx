@@ -14,9 +14,10 @@ export default function AuthGuard({
 
   useEffect(() => {
     const isPublicRoute =
-      pathname === "/login" ||
-      pathname === "/comercio/login" ||
-      pathname?.startsWith("/usuarios");
+  pathname === "/login" ||
+  pathname === "/comercio/login" ||
+  pathname?.startsWith("/usuarios") ||
+  pathname?.startsWith("/baja-programa");
 
     // ✅ el admin no lo controla este guard
     const isAdminRoute = pathname?.startsWith("/admin");
