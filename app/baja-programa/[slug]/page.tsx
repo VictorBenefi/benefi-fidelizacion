@@ -67,103 +67,103 @@ export default function BajaProgramaPage({
   }
 
   if (!programaNombre) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-sm">
-          <h1 className="text-xl font-semibold text-slate-900">
-            Programa no encontrado
-          </h1>
-        </div>
-      </main>
-    )
-  }
-
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-7 text-center">
-          <p className="mb-2 text-sm font-medium text-slate-500">
-            {programaNombre}
-          </p>
-
-          <h1 className="text-2xl font-bold text-slate-900">
-            Solicitud de baja
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Completá tus datos para solicitar la baja del programa.
-          </p>
-        </div>
-
-        {enviado ? (
-          <div className="rounded-xl bg-green-50 p-5 text-center">
-            <h2 className="font-semibold text-green-800">
-              Solicitud recibida
-            </h2>
-
-            <p className="mt-1 text-sm text-green-700">
-              Tu solicitud fue recibida correctamente.
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Nombre y apellido
-              </label>
-
-              <input
-                type="text"
-                value={nombreApellido}
-                onChange={(e) => setNombreApellido(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                DNI
-              </label>
-
-              <input
-                type="text"
-                inputMode="numeric"
-                required
-                value={dni}
-                onChange={(e) => setDni(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Email asociado a la cuenta
-              </label>
-
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-slate-500"
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-600">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={enviando}
-              className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {enviando ? 'Enviando...' : 'Solicitar baja'}
-            </button>
-          </form>
-        )}
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-xl rounded-2xl bg-white p-10 text-center shadow-sm">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Programa no encontrado
+        </h1>
       </div>
     </main>
   )
+}
+
+return (
+  <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+    <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-sm sm:p-12">
+      <div className="mb-10 text-center">
+        <p className="mb-3 text-base font-semibold uppercase tracking-wide text-slate-500">
+          {programaNombre}
+        </p>
+
+        <h1 className="text-4xl font-bold text-slate-900">
+          Solicitud de baja
+        </h1>
+
+        <p className="mt-3 text-lg text-slate-500">
+          Completá tus datos para solicitar la baja del programa.
+        </p>
+      </div>
+
+      {enviado ? (
+        <div className="rounded-xl bg-green-50 p-8 text-center">
+          <h2 className="text-2xl font-semibold text-green-800">
+            Solicitud recibida
+          </h2>
+
+          <p className="mt-2 text-lg text-green-700">
+            Tu solicitud fue recibida correctamente.
+          </p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-7">
+          <div>
+            <label className="mb-2 block text-base font-semibold text-slate-700">
+              Nombre y apellido
+            </label>
+
+            <input
+              type="text"
+              value={nombreApellido}
+              onChange={(e) => setNombreApellido(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-5 py-4 text-lg text-slate-900 outline-none focus:border-slate-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-base font-semibold text-slate-700">
+              DNI
+            </label>
+
+            <input
+              type="text"
+              inputMode="numeric"
+              required
+              value={dni}
+              onChange={(e) => setDni(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-5 py-4 text-lg text-slate-900 outline-none focus:border-slate-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-base font-semibold text-slate-700">
+              Email asociado a la cuenta
+            </label>
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-5 py-4 text-lg text-slate-900 outline-none focus:border-slate-500"
+            />
+          </div>
+
+          {error && (
+            <p className="text-base text-red-600">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={enviando}
+            className="w-full rounded-xl bg-slate-900 px-5 py-4 text-lg font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {enviando ? 'Enviando...' : 'Solicitar baja'}
+          </button>
+        </form>
+      )}
+    </div>
+  </main>
+)
 }

@@ -18,6 +18,7 @@ const isPublicRoute =
   pathname === "/login" ||
   pathname === "/comercio/login" ||
   pathname?.startsWith("/baja-programa") ||
+  pathname?.startsWith("/politica-privacidad") ||
   pathname?.startsWith("/usuarios") ||
   pathname?.startsWith("/terminal") ||
   (
